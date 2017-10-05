@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>SlackAPI</id>
+    <version>1.0.5.93</version>
+    <title>SlackAPI</title>
+    <authors>Inumedia, gpailler</authors>
+    <owners>Inumedia, gpailler</owners>
+    <licenseUrl>http://choosealicense.com/licenses/mit/</licenseUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>C# implementation of the Slack team communication platform API.</description>
+    <summary>The MIT License (MIT)</summary>
+    <language>en-US</language>
+    <dependencies>
+      <group targetFramework=".NETFramework4.5">
+        <dependency id="Newtonsoft.Json" version="9.0.1" />
+      </group>
+    </dependencies>
+  </metadata>
+</package>
