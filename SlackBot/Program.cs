@@ -11,10 +11,11 @@ namespace SlackBot
     {
         static void Main(string[] args)
         {
-            SlackClient test = new SlackClient("clientId", "clientSecret", "teamName");
+            //SlackClient test = new SlackClient("clientId", "clientSecret", "teamName");
 
             GitAuthenticator aut = new GitAuthenticator();
-            aut.oAuth().Wait();
+            aut.oAuth();
+            Console.ReadKey();
         }
     }
 }

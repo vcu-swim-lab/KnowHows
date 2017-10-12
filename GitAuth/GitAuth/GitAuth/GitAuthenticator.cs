@@ -17,15 +17,15 @@ namespace GitAuth
 
         string clientID = Environment.GetEnvironmentVariable("clientid");
         string clientSecret = Environment.GetEnvironmentVariable("clientsecret");
-        static readonly GitHubClient client =
+        readonly GitHubClient client =
             new GitHubClient(new ProductHeaderValue("seniordesign2017wooooo"));
 
-        public GitAuthenticator()
-        {
-        }
+        //public GitAuthenticator()
+        //{
+        //}
 
 
-        public async Task oAuth()
+        public async void oAuth()
         {
             string state = RandomURLKG(32);
 
