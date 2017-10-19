@@ -1,10 +1,10 @@
-﻿using Noobot.Core.MessagingPipeline.Middleware;
+﻿using System;
+using System.Collections.Generic;
+
+using Noobot.Core.MessagingPipeline.Middleware;
 using Noobot.Core.MessagingPipeline.Middleware.ValidHandles;
 using Noobot.Core.MessagingPipeline.Request;
 using Noobot.Core.MessagingPipeline.Response;
-
-using System;
-using System.Collections.Generic;
 
 namespace Swim.HelpMeCode.ConsoleService.MiddleWare
 {
@@ -27,8 +27,9 @@ namespace Swim.HelpMeCode.ConsoleService.MiddleWare
         {
             yield return message.IndicateTypingOnChannel();
 
+            // @TODO do special processing to message text so we can extract proper information
             var text = message.FullText;
-            String searchQuery = text.Substring(text.IndexOf(" ") + 1);
+            var searchQuery = text.Substring(text.IndexOf(" ") + 1);
 
             // @TODO process their search query
             String result = String.Format("*Received search request:* {0}", searchQuery);

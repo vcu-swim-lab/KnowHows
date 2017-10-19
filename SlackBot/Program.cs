@@ -19,12 +19,7 @@ namespace Swim.HelpMeCode.ConsoleService
                 x.Service<NoobotHost>(s =>
                 {
                     s.ConstructUsing(name => new NoobotHost(new JsonConfigReader()));
-
-                    s.WhenStarted(n =>
-                    {
-                        n.Start();
-                    });
-
+                    s.WhenStarted(n => n.Start());
                     s.WhenStopped(n => n.Stop());
                 });
 
