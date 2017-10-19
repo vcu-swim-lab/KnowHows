@@ -1,21 +1,38 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GitAuth;
+using System.IO;
+using System.Reflection;
 
-namespace SlackBot
+using Noobot.Core.Configuration;
+using Topshelf;
+
+namespace Swim.HelpMeCode.ConsoleService
 {
-    class Program
+    public class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
-            //SlackClient test = new SlackClient("clientId", "clientSecret", "teamName");
+            Directory.SetCurrentDirectory(AppDomain.CurrentDomain.BaseDirectory);
+            Console.WriteLine($"Noobot.Core assembly version: {Assembly.GetAssembly(typeof(Noobot.Core.INoobotCore)).GetName().Version}");
 
-            GitAuthenticator aut = new GitAuthenticator();
-            aut.oAuth();
-            Console.ReadKey();
+            HostFactory.Run(x =>
+            {
+                x.Service<NoobotHost>(s =>
+                {
+                    s.ConstructUsing(name => new NoobotHost(new JsonConfigReader()));
+
+                    s.WhenStarted(n =>
+                    {
+                        n.Start();
+                    });
+
+                    s.WhenStopped(n => n.Stop());
+                });
+
+                x.RunAsNetworkService();
+                x.SetDisplayName("HelpMeCode");
+                x.SetServiceName("HelpMeCode");
+                x.SetDescription("A bot to help you code");
+            });
         }
     }
 }
