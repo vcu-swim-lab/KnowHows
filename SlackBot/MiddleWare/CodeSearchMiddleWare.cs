@@ -16,7 +16,7 @@ namespace Swim.HelpMeCode.ConsoleService.MiddleWare
             {
                 new HandlerMapping
                 {
-                    ValidHandles = ContainsTextHandle.For("codesearch", "search"),
+                    ValidHandles = StartsWithHandle.For("codesearch", "search"),
                     Description = "Searches for code repositories for information regarding the search string specified. Usage: searchcode <search query>",
                     EvaluatorFunc = SearchHandler
                 }
