@@ -6,10 +6,10 @@ Slack bot based off Noobot, original implementation courtesy of Noobot example (
 * Visual Studio 2017 or Visual Studio Community
 
 ##### Building
-1. Open `Swim.HelpMeCode.sln` with Visual Studios and click build.
+1. Open `HelpMeCode.sln` with Visual Studios and click build.
 
 ##### Configuration
-1. Navigate to `src/Swim.HelpMeCode.ConsoleService/Configuration`
+1. Navigate to `SlackBot/Configuration`
 2. Copy `config.default.json` as `config.json`
 3. Update the `slack:apiToken` key with your slack API token (obtained here: https://my.slack.com/services/new/bot)
 
