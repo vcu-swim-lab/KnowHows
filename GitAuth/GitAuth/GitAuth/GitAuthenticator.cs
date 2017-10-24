@@ -19,13 +19,14 @@ namespace GitAuth
         string clientSecret = Environment.GetEnvironmentVariable("clientsecret");
         readonly GitHubClient client =
             new GitHubClient(new ProductHeaderValue("seniordesign2017wooooo"));
+        private string _token;
 
-        //public GitAuthenticator()
-        //{
-        //}
+        public GitAuthenticator()
+        {
+        }
 
 
-        public async void oAuth()
+        public async Task<string> oAuth()
         {
             string state = RandomURLKG(32);
 
@@ -63,13 +64,13 @@ namespace GitAuth
             if (context.Request.QueryString.Get("error") != null)
             {
                 write(String.Format("OAuth authorization error: {0}.", context.Request.QueryString.Get("error")));
-                return;
+                return "";
             }
             if (context.Request.QueryString.Get("code") == null
                 || context.Request.QueryString.Get("state") == null)
             {
                 write("bad authorization response. " + context.Request.QueryString);
-                return;
+                return "";
             }
 
             // a precious code
@@ -80,15 +81,16 @@ namespace GitAuth
             if (incoming_state != state)
             {
                 write(String.Format("Received request with invalid state ({0})", incoming_state));
-                return;
+                return "";
             }
             write("Authorization code: " + code);
+            _token = code;
 
-            Authorize(code);
+            return code;
         }
 
         /// <summary>
-        /// 
+        /// Unused
         /// </summary>
         /// <param name="code"></param>
         async void Authorize(string code)
@@ -118,7 +120,7 @@ namespace GitAuth
         {
             var request = new OauthLoginRequest(clientID)
             {
-                Scopes = { "user", "notifications" },
+                Scopes = { "user", "notifications", "repo" },
                 State = state
             };
             var oauthLoginUrl = client.Oauth.GetGitHubLoginUrl(request);
