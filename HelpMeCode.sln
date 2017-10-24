@@ -1,11 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26228.4
+# Visual Studio 14
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SlackBot", "SlackBot\SlackBot.csproj", "{435E6B49-93FB-45E4-9F3D-F983A08CE4EE}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GitAuth", "GitAuth\GitAuth\GitAuth\GitAuth.csproj", "{EC237577-BE18-4DAA-8FD9-031C6C8B3520}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SolrServices", "SolrServices\SolrServices.csproj", "{2AE6C6DE-47CB-4E73-8D34-E4F9DAB568B6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{EC237577-BE18-4DAA-8FD9-031C6C8B3520}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EC237577-BE18-4DAA-8FD9-031C6C8B3520}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EC237577-BE18-4DAA-8FD9-031C6C8B3520}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2AE6C6DE-47CB-4E73-8D34-E4F9DAB568B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2AE6C6DE-47CB-4E73-8D34-E4F9DAB568B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2AE6C6DE-47CB-4E73-8D34-E4F9DAB568B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2AE6C6DE-47CB-4E73-8D34-E4F9DAB568B6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
