@@ -12,10 +12,10 @@ namespace Website.Controllers
     {
         private const string GITHUB_APP_CLIENT_ID = "";
         private const string GITHUB_APP_CLIENT_SECRET = "";
-        private const string GITHUB_APP_CLIENT_SCOPE = "user notifications repo";
 
         private const string GITHUB_APP_OAUTH_URL = "https://github.com/login/oauth/authorize";
-        private const string GITHUB_APP_OAUTH_REDIRECT_URL = "https://github.com/login/oauth/authorize";
+        private const string GITHUB_APP_OAUTH_REDIRECT_URL = "";
+        private const string GITHUB_APP_OAUTH_SCOPE = "user notifications repo";
 
         public IHttpActionResult Authenticate(string bearer, string scope, string access_token)
         {
@@ -29,7 +29,7 @@ namespace Website.Controllers
                 String.Format("?client_id={0}&redirect_uri={1}&scope={2}&state={3}&allow_signup={4}",
                 GITHUB_APP_CLIENT_ID,
                 GITHUB_APP_OAUTH_REDIRECT_URL,
-                GITHUB_APP_CLIENT_SCOPE,
+                GITHUB_APP_OAUTH_SCOPE,
                 "state",
                 "true");
         }

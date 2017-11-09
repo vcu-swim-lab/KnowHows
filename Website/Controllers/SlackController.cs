@@ -15,30 +15,25 @@ namespace Website.Controllers
         private const string SLACK_APP_CLIENT_ID = "";
         private const string SLACK_APP_CLIENT_SECRET = "";
 
+        private const string SLACK_APP_OAUTH_URL = "https://slack.com/oauth/authorize";
+        private const string SLACK_APP_OAUTH_REDIRECT_URL = "";
+        private const string SLACK_APP_OAUTH_SCOPE = "bot commands client";
+
         public class SlashCommand
         {
-            public string token, team_id, team_domain, enterprise_id, enterprise_name, channel_id, channel_name, user_id, user_name, command, text, response_url, trigger_id;
-            public SlashCommand(FormDataCollection data)
-            {
-                this.token              = data.Get("token");
-                this.team_id            = data.Get("team_id");
-                this.team_domain        = data.Get("team_domain");
-                this.enterprise_id      = data.Get("enterprise_id");
-                this.enterprise_name    = data.Get("enterprise_name");
-                this.channel_id         = data.Get("channel_id");
-                this.channel_name       = data.Get("channel_name");
-                this.user_id            = data.Get("user_id");
-                this.user_name          = data.Get("user_name");
-                this.command            = data.Get("command");
-                this.text               = data.Get("text");
-                this.response_url       = data.Get("response_url");
-                this.trigger_id         = data.Get("trigger_id");
-            }
-        }
-
-        private class OAuthRequest
-        {
-            public string client_id, client_secret, code, redirect_uri;
+            public string token             { get; set; }
+            public string team_id           { get; set; }
+            public string team_domain       { get; set; }
+            public string enterprise_id     { get; set; }
+            public string enterprise_name   { get; set; }
+            public string channel_id        { get; set; }
+            public string channel_name      { get; set; }
+            public string user_id           { get; set; }
+            public string user_name         { get; set; }
+            public string command           { get; set; }
+            public string text              { get; set; }
+            public string response_url      { get; set; }
+            public string trigger_id        { get; set; }
         }
 
         private class OAuthResponse
@@ -46,11 +41,8 @@ namespace Website.Controllers
             public string access_token, scope;
         }
 
-        public IHttpActionResult ProcessMessage(FormDataCollection data)
+        public IHttpActionResult ProcessMessage([FromBody] SlashCommand command)
         {
-            // @TODO: there should be a better way of deserializing this
-            SlashCommand command = new SlashCommand(data);
-
             // @TODO: verify message is actually from slack via verification token
 
             // @TODO: process slash command
@@ -65,7 +57,7 @@ namespace Website.Controllers
 
             // @TODO: save the token and associate it with something
             OAuthResponse response = RequestAccessToken(code);
-            Console.WriteLine("Received access token for code {0}, access token: {1}", code, response.access_token);
+            Console.WriteLine("Received Slack OAuth: {0}, {1}", code, response.access_token);
 
             // @TODO: change this once we have an idea where we want to redirect users after installing the app
             // perhaps a tutorial page showing how to use the commands/app?
@@ -85,6 +77,16 @@ namespace Website.Controllers
             {
                 throw new Exception(String.Format("Failed to process OAuth response to request for code {0}", code));
             }
+        }
+
+        public string GetOAuthURL()
+        {
+            return SLACK_APP_OAUTH_URL +
+                String.Format("?client_id={0}&redirect_uri={1}&scope={2}&state={3}",
+                SLACK_APP_CLIENT_ID,
+                SLACK_APP_OAUTH_REDIRECT_URL,
+                SLACK_APP_OAUTH_SCOPE,
+                "state");
         }
     }
 }
