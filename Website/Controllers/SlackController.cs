@@ -51,8 +51,11 @@ namespace Website.Controllers
             // @TODO: there should be a better way of deserializing this
             SlashCommand command = new SlashCommand(data);
 
+            // @TODO: verify message is actually from slack via verification token
+
             // @TODO: process slash command
 
+            // @TODO: proper error code based on command execution
             return Ok();
         }
 
@@ -64,6 +67,8 @@ namespace Website.Controllers
             OAuthResponse response = RequestAccessToken(code);
             Console.WriteLine("Received access token for code {0}, access token: {1}", code, response.access_token);
 
+            // @TODO: change this once we have an idea where we want to redirect users after installing the app
+            // perhaps a tutorial page showing how to use the commands/app?
             return Redirect("google.com");
         }
 
