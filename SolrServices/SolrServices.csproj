@@ -66,12 +66,6 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\GitAuth\GitAuth\GitAuth\GitAuth.csproj">
-      <Project>{EC237577-BE18-4DAA-8FD9-031C6C8B3520}</Project>
-      <Name>GitAuth</Name>
-    </ProjectReference>
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
