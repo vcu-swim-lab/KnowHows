@@ -204,6 +204,16 @@
   <ItemGroup>
     <Content Include="noobot.ico" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\GitAuth\GitAuth\GitAuth\GitAuth.csproj">
+      <Project>{EC237577-BE18-4DAA-8FD9-031C6C8B3520}</Project>
+      <Name>GitAuth</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SolrServices\SolrServices.csproj">
+      <Project>{2AE6C6DE-47CB-4E73-8D34-E4F9DAB568B6}</Project>
+      <Name>SolrServices</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\NETStandard.Library.2.0.0\build\netstandard2.0\NETStandard.Library.targets" Condition="Exists('..\packages\NETStandard.Library.2.0.0\build\netstandard2.0\NETStandard.Library.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

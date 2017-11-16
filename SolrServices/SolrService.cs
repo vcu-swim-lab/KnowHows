@@ -1,4 +1,5 @@
-﻿using Microsoft.Practices.ServiceLocation;
+﻿using GitAuth;
+using Microsoft.Practices.ServiceLocation;
 using SolrNet;
 using SolrServices;
 using System;
@@ -24,25 +25,11 @@ namespace SolrServices
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="fileName"></param>
-        public async void AddIndexed(string filePath, string fileName)
+        public void AddIndexed(List<CodeDoc> incoming)
         {
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
 
-            string doc;
-
-            using (StreamReader stream = new StreamReader(filePath, Encoding.UTF8))
-            {
-                doc = await stream.ReadToEndAsync();
-            }
-
-            var resp = await solr.AddAsync(new CodeDoc()
-            {
-                Name = fileName,
-                Internals = doc,
-            });
-
-            write(resp.Status.ToString());
-            solr.Commit();
+            incoming.ForEach(async x => { await solr.AddAsync(x); solr.Commit(); });
 
         }
 
@@ -81,7 +68,7 @@ namespace SolrServices
 
             foreach (CodeDoc codeDoc in codeQuery)
             {
-                write("Found " + codeDoc.Name);
+                //write("Found " + codeDoc.Name);
             }
 
         }

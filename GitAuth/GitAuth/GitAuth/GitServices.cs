@@ -1,6 +1,7 @@
 ﻿using Octokit;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -18,6 +19,7 @@ namespace GitAuth
             new GitHubClient(new ProductHeaderValue("seniordesign2017wooooo"));
         private Task<GitHubClient> task;
         private Queue<string> gitData = new Queue<string>();
+        List<GithubCommit> coms = new List<GithubCommit>();
 
         OauthToken token;
 
@@ -43,9 +45,62 @@ namespace GitAuth
 
         public async Task GitCommits(string code)
         {
-            var collectCommits = await client.Repository.Commit.Get("vcu-swim-lab", "HelpMeCode", "be3daca02b00447742d63fbf4c421d266319f116");
+            Thread.Sleep(1000);
+            List<IReadOnlyList<GitHubCommit>> commies = new List<IReadOnlyList<GitHubCommit>>();
+            //List<GithubCommit> coms = new List<GithubCommit>();
+            var repos = await client.Repository.GetAllForCurrent();
 
-            var files = collectCommits.Files;
+            List<string> fileExt = new List<string> { ".cs", ".py", ".java", ".go", ".js", ".ts", ".c", ".pl" };
+
+            foreach (var repo in repos)
+            {
+                var commit = await client
+                    .Repository
+                    .Commit
+                    .GetAll(repo.Owner.Login, repo.Name);
+
+
+                foreach (var communist in commit)
+                {
+                    GithubCommit aCommit = new GithubCommit();
+                    aCommit.sha = communist.Sha;
+                    aCommit.author_name = communist.Commit.Author.Name;
+                    aCommit.committer_name = communist.Commit.Committer.Name;
+                    aCommit.author_date = communist.Commit.Author.Date;
+                    // check date here and disregard old af stuff
+                    if (communist.Commit.Author.Date.CompareTo(DateTimeOffset.Now.AddDays(-90)) < 1)
+                    {
+                        break;
+                    }
+
+                    var associated_files = await client.Repository.Commit.Get(repo.Id, communist.Sha);
+
+                    foreach (var file in associated_files.Files)
+                    {
+                        aCommit.filename = file.Filename; // we can filter out unwanted files here
+                        if (file.Filename.Contains(".") && !fileExt.Any(x => x.Contains(file.Filename.Substring(file.Filename.LastIndexOf('.')))))
+                        {
+                            break;
+                        }
+
+                        if (file.PreviousFileName != null)
+                        {
+                            aCommit.previous_file_name = file.PreviousFileName;
+                        }
+                        aCommit.blob_url = file.BlobUrl;
+                        aCommit.raw_url = file.RawUrl; // we need this when we pickout dates, for now just grab all files
+
+                        var request = (HttpWebRequest)WebRequest.Create(file.RawUrl);
+                        var response = (HttpWebResponse)request.GetResponse();
+                        aCommit.content = new StreamReader(response.GetResponseStream()).ReadToEnd();
+
+                        aCommit.patch = file.Patch; // the changes
+
+                        coms.Add(aCommit);
+                    }
+                }
+                // download the file at currentdatetime - 90 days
+            }
         }
 
         /// <summary>
