@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web;
+using System.Threading.Tasks;
 
-namespace Website
+namespace Website.Utility
 {
-    public class OAuth
+    public static class OAuth
     {
         public class OAuthResponse
         {

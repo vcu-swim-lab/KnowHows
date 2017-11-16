@@ -1,19 +1,24 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net;
-using System.Web.Http;
+using System.Threading.Tasks;
+using static Website.Utility.OAuth;
 
 namespace Website.Controllers
 {
-    [RoutePrefix("api/slack")]
-    public class SlackController : ApiController
+    [Route("api/slack")]
+    public class SlackController : Controller
     {
         private const string SLACK_APP_CLIENT_ID = "";
         private const string SLACK_APP_CLIENT_SECRET = "";
 
         private const string SLACK_APP_OAUTH_URL = "https://slack.com/oauth/authorize";
         private const string SLACK_APP_OAUTH_ACCESS_URL = "https://slack.com/api/oauth.access";
-        private const string SLACK_APP_OAUTH_REDIRECT_URL = "http://localhost:53222/api/slack/authenticate";
+
+        private static string SLACK_APP_OAUTH_REDIRECT_URL = Program.WEBSITE_BASE_URL + "/api/slack/authenticate";
 
         private const string SLACK_APP_OAUTH_SCOPE = "client";
 
@@ -34,7 +39,9 @@ namespace Website.Controllers
             public string trigger_id { get; set; }
         }
 
-        public IHttpActionResult ProcessMessage([FromBody] SlashCommand command)
+        [HttpPost]
+        [Route("ProcessMessage")]
+        public IActionResult ProcessMessage(SlashCommand command)
         {
             // @TODO: verify message is actually from slack via verification token
 
@@ -46,12 +53,12 @@ namespace Website.Controllers
 
         [HttpGet]
         [Route("Authenticate")]
-        public IHttpActionResult Authenticate([FromUri] OAuth.OAuthRequest request)
+        public IActionResult Authenticate(OAuthRequest request)
         {
             Console.WriteLine("Received Slack install: '{0}' '{1}'", request.code, request.state);
 
             // @TODO: save the token and associate it with something
-            OAuth.OAuthResponse response = RequestAccessToken(request.code);
+            OAuthResponse response = RequestAccessToken(request.code);
             Console.WriteLine("Received Slack OAuth: '{0}', '{1}'", request.code, response.access_token);
 
             // @TODO: change this once we have an idea where we want to redirect users after installing the app
@@ -59,15 +66,15 @@ namespace Website.Controllers
             return Redirect(Url.Content("~/"));
         }
 
-        private OAuth.OAuthResponse RequestAccessToken(string code)
+        private OAuthResponse RequestAccessToken(string code)
         {
             WebClient client = new WebClient();
             client.Headers["Accept"] = "application/json";
 
-            string uri = SLACK_APP_OAUTH_ACCESS_URL + String.Format("?client_id={0}&client_secret={1}&code={2}&redirect_uri={3}", SLACK_APP_CLIENT_ID, SLACK_APP_CLIENT_SECRET, code, SLACK_APP_OAUTH_REDIRECT_URL);
+            string uri = SLACK_APP_OAUTH_ACCESS_URL + String.Format("?client_id={0}&client_secret={1}&caaode={2}&redirect_uri={3}", SLACK_APP_CLIENT_ID, SLACK_APP_CLIENT_SECRET, code, SLACK_APP_OAUTH_REDIRECT_URL);
             string response = client.DownloadString(new Uri(uri));
 
-            try { return JsonConvert.DeserializeObject<OAuth.OAuthResponse>(response); }
+            try { return JsonConvert.DeserializeObject<OAuthResponse>(response); }
             catch (Exception ex)
             {
                 throw new Exception(String.Format("Failed to process Slack OAuth Access Token response for code: '{0}', reason: {1}", code, ex.ToString()));
