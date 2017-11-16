@@ -54,6 +54,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="GitAuthenticator.cs" />
+    <Compile Include="GithubCommit.cs" />
     <Compile Include="GitServices.cs" />
     <Compile Include="Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
