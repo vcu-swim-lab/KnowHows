@@ -118,7 +118,7 @@
    <!-- points to the root document of a block of nested documents. Required for nested
       document support, may be removed otherwise
    -->
-   <field name="_root_" type="string" indexed="true" stored="false" docValues="false" />
+   <field name="_root_" type="uuid" indexed="true" stored="false" docValues="false" />
 
    <!-- Only remove the "id" field if you have a very good reason to. While not strictly
      required, it is highly recommended. A <uniqueKey> is present in almost all Solr 
@@ -129,13 +129,13 @@
      in a compatible way. Any analysis applied to the <uniqueKey> should _not_ produce multiple
      tokens
    -->   
-   <field name="id" type="string" indexed="true" stored="true" required="true" multiValued="false" />  <!-- SHA -->
+   <field name="id" type="uuid" indexed="true" stored="true" required="true" multiValued="false" default="NEW" />  <!-- SHA -->
 
-   <field name="indexedat" type="pdate" default="NOW/SECOND" />
+   <field name="author_date" type="pdate" default="NOW/SECOND" />
 
    <field name="methodlist" type="preanalyzed" indexed="true" stored="true"/> <!-- should use this if we want to pass "methods used" as a list -->
    <field name="githandle" type="text_en_splitting_tight" indexed="true" stored="true" />
-   <field name="name" type="text_general" indexed="true" stored="true"/>
+   <field name="committer_name" type="text_general" indexed="true" stored="true"/>
    <field name="manu" type="text_general" indexed="true" stored="true" omitNorms="true"/>
    <field name="cat" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="commitdate" type="pdate" indexed="true" stored="true"/>
@@ -149,15 +149,18 @@
        "content_type": From the HTTP headers of incoming stream
        "resourcename": From SolrCell request param resource.name
    -->
-   <field name="title" type="text_general" indexed="true" stored="true" multiValued="true"/>
+   <field name="sha" type="string" indexed="true" stored="true" required="true"/>
+   <field name="filename" type="text_general" indexed="true" stored="true"/>
+   <field name="previous_file_name" type="text_general" indexed="true" stored="true"/>
    <field name="gitcomment" type="text_general" indexed="true" stored="true"/>
    <field name="description" type="text_general" indexed="true" stored="true"/>
    <field name="parentdoc" type="text_general" indexed="true" stored="true"/>
-   <field name="author" type="text_general" indexed="true" stored="true"/>
-   <field name="methods" type="text_general" indexed="true" stored="true"/>
+   <field name="author_name" type="text_general" indexed="true" stored="true"/>
+   <field name="patch" type="text_general" indexed="true" stored="true"/>
    <field name="category" type="text_general" indexed="true" stored="true"/>
    <field name="accesstoken" type="string" indexed="true" stored="true" required="true"/>
-   <field name="url" type="text_general" indexed="true" stored="true"/>
+   <field name="blob_url" type="text_general" indexed="false" stored="true"/>
+   <field name="raw_url" type="text_general" indexed="false" stored="true"/>
    <field name="content_type" type="string" indexed="true" stored="true" multiValued="true"/>
    <field name="last_modified" type="pdate" indexed="true" stored="true"/>
    <field name="links" type="string" indexed="true" stored="true" multiValued="true"/>
@@ -237,23 +240,23 @@
         or to add multiple fields to the same field for easier/faster searching.  -->
 
    <copyField source="cat" dest="text"/>
-   <copyField source="name" dest="text"/>
+   <copyField source="committer_name" dest="text"/>
    <copyField source="manu" dest="text"/>
    <copyField source="includes" dest="text"/>
    <copyField source="manu" dest="manu_exact"/>
 
    <!-- Text fields from SolrCell to search by default in our catch-all field -->
-   <copyField source="title" dest="text"/>
-   <copyField source="author" dest="text"/>
+   <copyField source="filename" dest="text"/>
+   <copyField source="author_name" dest="text"/>
    <copyField source="description" dest="text"/>
-   <copyField source="methods" dest="text"/>
+   <copyField source="patch" dest="text"/>
    <copyField source="content" dest="text"/>
    <copyField source="content_type" dest="text"/>
    <copyField source="accesstoken" dest="text"/>
-   <copyField source="url" dest="text"/>
+   <copyField source="blob_url" dest="text"/>
    
    <!-- Create a string version of author for faceting -->
-   <copyField source="author" dest="author_s"/>
+   <copyField source="author_name" dest="author_s"/>
   
    <!-- Above, multiple source fields are copied to the [text] field. 
     Another way to map multiple source fields to the same 
@@ -280,6 +283,8 @@
     <!-- boolean type: "true" or "false" -->
     <fieldType name="boolean" class="solr.BoolField" sortMissingLast="true"/>
 
+
+    <fieldType name="uuid" class="solr.UUIDField" indexed="true" />
     <!-- sortMissingLast and sortMissingFirst attributes are optional attributes are
          currently supported on types that are sorted internally as strings
          and on numeric types.
@@ -1108,6 +1113,13 @@
         <tokenizer class="solr.WhitespaceTokenizerFactory"/>
       </analyzer>
     </fieldType>
+
+    <updateRequestProcessorChain name="uuid">
+    <processor class="solr.UUIDUpdateProcessorFactory">
+      <str name="fieldName">id</str>
+    </processor>
+    <processor class="solr.RunUpdateProcessorFactory" />
+  </updateRequestProcessorChain>
 
   <!-- Similarity is the scoring routine for each document vs. a query.
        A custom Similarity or SimilarityFactory may be specified here, but 
