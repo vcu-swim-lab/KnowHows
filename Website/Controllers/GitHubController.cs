@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Net;
-using System.Threading.Tasks;
+
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 using Website.Utility;
 using Website.Utility.OAuth;
