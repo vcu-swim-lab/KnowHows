@@ -5,22 +5,46 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
-using static Website.Utility.OAuth;
+using Microsoft.Extensions.Options;
+
+using Website.Utility;
+using Website.Utility.OAuth;
 
 namespace Website.Controllers
 {
     [Route("api/github")]
     public class GitHubController : Controller
     {
-        private const string GITHUB_APP_CLIENT_ID = "";
-        private const string GITHUB_APP_CLIENT_SECRET = "";
-
         private const string GITHUB_APP_OAUTH_URL = "https://github.com/login/oauth/authorize";
         private const string GITHUB_APP_OAUTH_ACCESS_URL = "https://github.com/login/oauth/access_token";
-
-        private static string GITHUB_APP_OAUTH_REDIRECT_URL = Program.WEBSITE_BASE_URL + "/api/github/authenticate";
-
         private const string GITHUB_APP_OAUTH_SCOPE = "user notifications repo";
+
+        private readonly AppSettings _options;
+        public GitHubController(IOptions<AppSettings> optionsAccessor)
+        {
+            _options = optionsAccessor.Value;
+        }
+
+        private OAuthResponse RequestAccessToken(string code)
+        {
+            WebClient client = new WebClient();
+            client.Headers["Accept"] = "application/json";
+
+            string uri = GITHUB_APP_OAUTH_ACCESS_URL + String.Format("?client_id={0}&client_secret={1}&code={2}&redirect_uri={3}&state={4}",
+                _options.GITHUB_APP_CLIENT_ID,
+                _options.GITHUB_APP_CLIENT_SECRET,
+                code,
+                _options.GITHUB_APP_OAUTH_REDIRECT_URL,
+                "state");
+
+            string response = client.DownloadString(new Uri(uri));
+
+            try { return JsonConvert.DeserializeObject<OAuthResponse>(response); }
+            catch (Exception ex)
+            {
+                throw new Exception(String.Format("Failed to process GitHub OAuth Access Token response for code: '{0}', reason: {1}", code, ex.ToString()));
+            }
+        }
 
         [HttpGet]
         [Route("Authenticate")]
@@ -35,28 +59,14 @@ namespace Website.Controllers
             return Redirect(Url.Content("~/"));
         }
 
-        private OAuthResponse RequestAccessToken(string code)
-        {
-            WebClient client = new WebClient();
-            client.Headers["Accept"] = "application/json";
-
-            string uri = GITHUB_APP_OAUTH_ACCESS_URL + String.Format("?client_id={0}&client_secret={1}&code={2}&redirect_uri={3}&state={4}", GITHUB_APP_CLIENT_ID, GITHUB_APP_CLIENT_SECRET, code, GITHUB_APP_OAUTH_REDIRECT_URL, "state");
-            string response = client.DownloadString(new Uri(uri));
-
-            try { return JsonConvert.DeserializeObject<OAuthResponse>(response); }
-            catch (Exception ex)
-            {
-                throw new Exception(String.Format("Failed to process GitHub OAuth Access Token response for code: '{0}', reason: {1}", code, ex.ToString()));
-            }
-        }
-
+        [HttpGet]
         [Route("getOAuthURL")]
         public string GetOAuthURL()
         {
             return GITHUB_APP_OAUTH_URL +
                 String.Format("?client_id={0}&redirect_uri={1}&scope={2}&state={3}&allow_signup={4}",
-                GITHUB_APP_CLIENT_ID,
-                GITHUB_APP_OAUTH_REDIRECT_URL,
+                _options.GITHUB_APP_CLIENT_ID,
+                _options.GITHUB_APP_OAUTH_REDIRECT_URL,
                 GITHUB_APP_OAUTH_SCOPE,
                 "state",
                 "true");
