@@ -15,7 +15,7 @@ KnowHows is a Slack app that allows users to search repositories for people who 
 3. Update all the fields in the `AppSettings` section, `GITHUB_APP_OAUTH_REDIRECT_URL` and `SLACK_APP_OAUTH_REDIRECT_URL` should be the URL of which you want the user to be redirected to during the OAuth process.  In our case, this typically should be something like `http://localhost:53222/api/github/authenticate` (for example)
 
 ##### Building With Visual Studio
-1. Open `HelpMeCode.sln` with Visual Studios and click build
+1. Open `KnowHows.sln` with Visual Studios and click build
 
 ##### Building From Command Line
 1. In a terminal or command prompt, navigate to `Website/`
