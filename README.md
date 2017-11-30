@@ -1,4 +1,4 @@
-KnowHows
+![KnowHows](https://i.imgur.com/MePerkA.png)
 ===================
 
 KnowHows is a Slack app that allows users to search repositories for people who have knowledge on certain parts of code.
@@ -25,3 +25,4 @@ KnowHows is a Slack app that allows users to search repositories for people who 
 ##### Running
 1. Before running the website, ensure that `appsettings.json` is present in the directory that you'll be running the website from (`Website\bin\Debug\netcoreapp2.0`, for example)
 2. From a terminal or command line, you may run `dotnet run` in order to start the website
+

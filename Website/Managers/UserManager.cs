@@ -19,10 +19,11 @@ namespace Website.Manager
 
         public string GitHubAccessToken
         {
-            get { return _gitHubAccessToken; }
+            private get { return _gitHubAccessToken; }
             set
             {
                 _gitHubAccessToken = value;
+                _client.Credentials = new Credentials(_gitHubAccessToken);
                 UpdateRepositoryIndex();
             }
         }
@@ -33,14 +34,12 @@ namespace Website.Manager
             this.ChannelID = channelId;
             this.UserID = userId;
             this._repositories = new List<String>();
-            this._client = new GitHubClient(new ProductHeaderValue("somevalueherereplacemeidk"));
+            this._client = new GitHubClient(new ProductHeaderValue("")); // does this need to have a non-empty string?
         }
 
         private void UpdateRepositoryIndex()
         {
             _repositories.Clear();
-            _client.Credentials = new Credentials(_gitHubAccessToken);
-
             var repos = _client.Repository.GetAllForCurrent().Result;
             foreach (var repo in repos) _repositories.Add(repo.Url);
         }
