@@ -1,12 +1,9 @@
-﻿using GitAuth;
-using Microsoft.Practices.ServiceLocation;
+﻿using Microsoft.Practices.ServiceLocation;
 using SolrNet;
-using SolrServices;
+using SolrNet.Commands.Parameters;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SolrServices
@@ -23,13 +20,56 @@ namespace SolrServices
         /// <summary>
         /// this is how we should be entering our data in, for searchability
         /// </summary>
-        /// <param name="filePath"></param>
-        /// <param name="fileName"></param>
-        public void AddIndexed(List<CodeDoc> incoming)
+        /// <param name="incoming"></param>
+        public async Task AddIndexed(List<CodeDoc> incoming)
         {
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
 
-            incoming.ForEach(async x => { await solr.AddAsync(x); solr.Commit(); });
+            // this works better, can log bad responses if need be. response 1 == bad
+            foreach (var inc in incoming)
+            {
+                var send = await solr.AddAsync(inc);
+                write(send.Status.ToString());
+            }
+
+            solr.Commit();
+        }
+
+        /// <summary>
+        /// Provide a search string and filter string this will return the top result.  
+        /// </summary>
+        /// <param name="search">the search term</param>
+        /// <param name="channelId">the channel to filter by</param>
+        public void Query(string search, string channelId)
+        {
+            ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
+            List<ISolrQuery> filter = new List<ISolrQuery>();
+            filter.Add(new SolrQueryByField("channel", channelId));
+            var opts = new QueryOptions();
+            opts.ExtraParams = new KeyValuePair<string, string>[]
+            {
+                new KeyValuePair<string, string>("wt", "xml") // wt = writertype (response format)
+            };
+
+            // this should add an additional filter by channel ID 
+            // this removes cross contamination
+            foreach (var filt in filter)
+            {
+                opts.AddFilterQueries(filt);
+            }
+
+            var query = new SolrQuery(search);
+            var codeQuery = solr.Query(query, opts);
+
+            // pulling the top-ranked author
+            if (codeQuery.Count > 0)
+                write("Author: " + codeQuery[0].Author_Name);
+            else
+                write("nothing returned, try again");
+            foreach (CodeDoc codeDoc in codeQuery)
+            {
+                //write("Found " + codeDoc.Name);
+            }
 
         }
 

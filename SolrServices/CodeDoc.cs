@@ -1,6 +1,5 @@
 ﻿using SolrNet.Attributes;
 using System;
-using System.IO;
 
 namespace SolrServices
 {
@@ -38,5 +37,11 @@ namespace SolrServices
 
         [SolrField("accesstoken")]
         public string Accesstoken { get; set; }
+
+        [SolrField("patch")]
+        public string Patch { get; set; }
+
+        [SolrField("channel")]
+        public string Channel { get; set; }
     }
 }
