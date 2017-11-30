@@ -50,7 +50,8 @@ namespace Website.Controllers
             WebClient client = new WebClient();
             client.Headers["Accept"] = "application/json";
 
-            string uri = SLACK_APP_OAUTH_ACCESS_URL + String.Format("?client_id={0}&client_secret={1}&caaode={2}&redirect_uri={3}",
+            string uri = String.Format("{0}?client_id={1}&client_secret={2}&caaode={3}&redirect_uri={4}",
+                SLACK_APP_OAUTH_ACCESS_URL,
                 _options.SLACK_APP_CLIENT_ID,
                 _options.SLACK_APP_CLIENT_SECRET,
                 code,
@@ -70,8 +71,9 @@ namespace Website.Controllers
             String message;
 
             // Read request body into string
-            using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8))
+            using (StreamReader reader = new StreamReader(Request.Body, Encoding.UTF8)) {
                 message = reader.ReadToEnd().ToString();
+            }
 
             // Parse message into dictionary
             var dictionary = message
@@ -93,14 +95,10 @@ namespace Website.Controllers
             // @TODO: Figure out why the slash command can't be properly deserialized when passed as an argument
             // as is, we have to do this hacky way to actualize our slash command from Slack
             var parameters = GetParametersFromRequest();
+            foreach (var k in parameters.Keys) Console.WriteLine("{0}: {1}", k, parameters[k]);
 
-            foreach (var k in parameters.Keys)
-                Console.WriteLine("{0}: {1}", k, parameters[k]);
-
-            // @TODO: verify message is actually from slack via verification token
-
-            // @TODO: process slash command
-
+            // @TODO: verify message is actually from slack via verification 
+            // @TODO: process slash 
             // @TODO: proper error code based on command execution
 
             string uuid = parameters["team_id"] + "." + parameters["channel_id"] + "." + parameters["user_id"];
@@ -120,9 +118,16 @@ namespace Website.Controllers
                 return sb.ToString();
             }
             else
-                return String.Format("It looks like you haven't authorized us as a GitHub app in this channel! Please visit this URL to get set up: {0}/api/github/getoauthurl?uuid={1}", 
-                        _options.WEBSITE_BASE_URL, 
-                        uuid);
+            {
+                return String.Format
+                (
+                    "It looks like you haven't authorized us as a GitHub app in this channel!" +
+                    "Please visit this URL to get set up: {0}/api/github/getoauthurl?uuid={1}",
+                    _options.WEBSITE_BASE_URL,
+                    uuid
+                );
+            }
+                
         }
 
         [HttpGet]
@@ -144,12 +149,12 @@ namespace Website.Controllers
         [Route("getOAuthURL")]
         public IActionResult GetOAuthURL()
         {
-            return Redirect(SLACK_APP_OAUTH_URL +
-                    String.Format("?client_id={0}&redirect_uri={1}&scope={2}&state={3}",
-                    _options.SLACK_APP_CLIENT_ID,
-                    _options.SLACK_APP_OAUTH_REDIRECT_URL,
-                    SLACK_APP_OAUTH_SCOPE,
-                    "state"));
+            return Redirect(String.Format("{0}?client_id={1}&redirect_uri={2}&scope={3}&state={4}",
+                SLACK_APP_OAUTH_URL,
+                _options.SLACK_APP_CLIENT_ID,
+                _options.SLACK_APP_OAUTH_REDIRECT_URL,
+                SLACK_APP_OAUTH_SCOPE,
+                "state"));
         }
     }
 }
