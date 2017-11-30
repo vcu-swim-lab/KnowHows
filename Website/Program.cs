@@ -9,18 +9,16 @@ namespace Website
     {
         private const int WEBSITE_PORT = 53222;
 
-        public static IConfigurationRoot Configuration { get; set; }
-
         public static void Main(string[] args)
         {
-            Configuration = new ConfigurationBuilder()
+            var config = new ConfigurationBuilder()
                         .AddCommandLine(args)
                         .AddJsonFile("appsettings.json", optional: false)
                         .Build();
 
             var host = new WebHostBuilder()
                         .UseKestrel()
-                        .UseConfiguration(Configuration)
+                        .UseConfiguration(config)
                         .UseContentRoot(Directory.GetCurrentDirectory())
                         .UseIISIntegration()
                         .UseStartup<Startup>()

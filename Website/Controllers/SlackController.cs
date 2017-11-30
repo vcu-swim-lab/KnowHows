@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 
 using Website.Utility;
 using Website.Utility.OAuth;
+using Website.Manager;
 
 namespace Website.Controllers
 {
@@ -74,20 +75,19 @@ namespace Website.Controllers
 
             // Parse message into dictionary
             var dictionary = message
-                                .Split("&")
-                                .Select(s => s.Split('='))
-                                .ToDictionary
-                                (
-                                    key => WebUtility.UrlDecode(key[0].Trim()),
-                                    value => WebUtility.UrlDecode(value[1].Trim())
-                                );
+                            .Split("&")
+                            .Select(s => s.Split('='))
+                            .ToDictionary
+                            (
+                                key => WebUtility.UrlDecode(key[0].Trim()),
+                                value => WebUtility.UrlDecode(value[1].Trim())
+                            );
 
             return dictionary;
         }
 
         [HttpPost]
         [Route("ProcessMessage")]
-        [Produces("application/json")]
         public String ProcessMessage()
         {
             // @TODO: Figure out why the slash command can't be properly deserialized when passed as an argument
@@ -103,7 +103,26 @@ namespace Website.Controllers
 
             // @TODO: proper error code based on command execution
 
-            return String.Format("Recieved command with text: {0}", parameters["text"]);
+            string uuid = parameters["team_id"] + "." + parameters["channel_id"] + "." + parameters["user_id"];
+
+            if(UserManager.Instance.IsGitHubAuthenticated(uuid))
+            {
+                GitHubUser user = UserManager.Instance.GetGitHubUser(uuid);
+                StringBuilder sb = new StringBuilder();
+
+                sb.AppendLine("Successfully authenticated with GitHub.");
+                sb.AppendLine("Here are the repositories we found from your profile:");
+                foreach (String repo in user.Repositories) sb.AppendLine(repo);
+
+                sb.AppendLine();
+                sb.AppendLine(String.Format("Additionally, we recieved your command with text: {0}", parameters["text"]));
+
+                return sb.ToString();
+            }
+            else
+                return String.Format("It looks like you haven't authorized us as a GitHub app in this channel! Please visit this URL to get set up: {0}/api/github/getoauthurl?uuid={1}", 
+                        _options.WEBSITE_BASE_URL, 
+                        uuid);
         }
 
         [HttpGet]
@@ -123,14 +142,14 @@ namespace Website.Controllers
 
         [HttpGet]
         [Route("getOAuthURL")]
-        public string GetOAuthURL()
+        public IActionResult GetOAuthURL()
         {
-            return SLACK_APP_OAUTH_URL +
-                String.Format("?client_id={0}&redirect_uri={1}&scope={2}&state={3}",
-                _options.SLACK_APP_CLIENT_ID,
-                _options.SLACK_APP_OAUTH_REDIRECT_URL,
-                SLACK_APP_OAUTH_SCOPE,
-                "state");
+            return Redirect(SLACK_APP_OAUTH_URL +
+                    String.Format("?client_id={0}&redirect_uri={1}&scope={2}&state={3}",
+                    _options.SLACK_APP_CLIENT_ID,
+                    _options.SLACK_APP_OAUTH_REDIRECT_URL,
+                    SLACK_APP_OAUTH_SCOPE,
+                    "state"));
         }
     }
 }

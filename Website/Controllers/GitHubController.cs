@@ -7,6 +7,8 @@ using Newtonsoft.Json;
 
 using Website.Utility;
 using Website.Utility.OAuth;
+using System.Collections.Generic;
+using Website.Manager;
 
 namespace Website.Controllers
 {
@@ -16,6 +18,8 @@ namespace Website.Controllers
         private const string GITHUB_APP_OAUTH_URL = "https://github.com/login/oauth/authorize";
         private const string GITHUB_APP_OAUTH_ACCESS_URL = "https://github.com/login/oauth/access_token";
         private const string GITHUB_APP_OAUTH_SCOPE = "user notifications repo";
+
+       
 
         private readonly AppSettings _options;
         public GitHubController(IOptions<AppSettings> optionsAccessor)
@@ -54,20 +58,24 @@ namespace Website.Controllers
             OAuthResponse response = RequestAccessToken(request.code);
             Console.WriteLine("Received GitHub OAuth: '{0}', '{1}'", request.code, response.access_token);
 
-            return Redirect(Url.Content("~/"));
+            UserManager.Instance.AddGitHubAuth(request.state, response.access_token);
+
+            return Ok("You may now close this tab");
         }
 
         [HttpGet]
         [Route("getOAuthURL")]
-        public string GetOAuthURL()
+        public IActionResult GetOAuthURL(string uuid)
         {
-            return GITHUB_APP_OAUTH_URL +
+            UserManager.Instance.AddPendingGitHubAuth(uuid);
+
+            return Redirect(GITHUB_APP_OAUTH_URL +
                 String.Format("?client_id={0}&redirect_uri={1}&scope={2}&state={3}&allow_signup={4}",
                 _options.GITHUB_APP_CLIENT_ID,
                 _options.GITHUB_APP_OAUTH_REDIRECT_URL,
                 GITHUB_APP_OAUTH_SCOPE,
-                "state",
-                "true");
+                uuid,
+                "true"));
         }
     }
 }
