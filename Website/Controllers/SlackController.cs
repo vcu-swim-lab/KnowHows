@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
+using System.Reflection;
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -12,6 +13,7 @@ using Newtonsoft.Json;
 using Website.Utility;
 using Website.Utility.OAuth;
 using Website.Manager;
+using Website.Commands;
 
 namespace Website.Controllers
 {
@@ -21,23 +23,6 @@ namespace Website.Controllers
         private const string SLACK_APP_OAUTH_URL = "https://slack.com/oauth/authorize";
         private const string SLACK_APP_OAUTH_ACCESS_URL = "https://slack.com/api/oauth.access";
         private const string SLACK_APP_OAUTH_SCOPE = "client";
-
-        public class SlashCommand
-        {
-            public string token { get; set; }
-            public string team_id { get; set; }
-            public string team_domain { get; set; }
-            public string enterprise_id { get; set; }
-            public string enterprise_name { get; set; }
-            public string channel_id { get; set; }
-            public string channel_name { get; set; }
-            public string user_id { get; set; }
-            public string user_name { get; set; }
-            public string command { get; set; }
-            public string text { get; set; }
-            public string response_url { get; set; }
-            public string trigger_id { get; set; }
-        }
 
         private readonly AppSettings _options;
         public SlackController(IOptions<AppSettings> optionsAccessor)
@@ -66,7 +51,20 @@ namespace Website.Controllers
             }
         }
 
-        private Dictionary<String, String> GetParametersFromRequest()
+        private Command GetCommandFromRequestParameters(Dictionary<string, string> dictionary)
+        {
+             // Parse keys and values into command using reflection
+            Command c = new Command();
+            
+            foreach (var k in dictionary.Keys) {
+                PropertyInfo propertyInfo = typeof(Command).GetProperty(k);
+                propertyInfo.SetValue(c, dictionary[k], null);
+            }
+
+            return c;
+        }
+
+        private Dictionary<string, string> GetParametersFromRequest()
         {
             String message;
 
@@ -84,21 +82,21 @@ namespace Website.Controllers
                                 key => WebUtility.UrlDecode(key[0].Trim()),
                                 value => WebUtility.UrlDecode(value[1].Trim())
                             );
-
+           
             return dictionary;
         }
 
         [HttpPost]
         [Route("ProcessMessage")]
-        public String ProcessMessage()
+        public CommandResponse ProcessMessage()
         {
             // @TODO: Figure out why the slash command can't be properly deserialized when passed as an argument
             // as is, we have to do this hacky way to actualize our slash command from Slack
             var parameters = GetParametersFromRequest();
+            var command = GetCommandFromRequestParameters(parameters);
             foreach (var k in parameters.Keys) Console.WriteLine("{0}: {1}", k, parameters[k]);
 
             // @TODO: verify message is actually from slack via verification 
-            // @TODO: process slash 
             // @TODO: proper error code based on command execution
 
             string uuid = parameters["team_id"] + "." + parameters["channel_id"] + "." + parameters["user_id"];
@@ -106,28 +104,18 @@ namespace Website.Controllers
             if(UserManager.Instance.IsGitHubAuthenticated(uuid))
             {
                 GitHubUser user = UserManager.Instance.GetGitHubUser(uuid);
-                StringBuilder sb = new StringBuilder();
-
-                sb.AppendLine("Successfully authenticated with GitHub.");
-                sb.AppendLine("Here are the repositories we found from your profile:");
-                foreach (String repo in user.Repositories) sb.AppendLine(repo);
-
-                sb.AppendLine();
-                sb.AppendLine(String.Format("Additionally, we recieved your command with text: {0}", parameters["text"]));
-
-                return sb.ToString();
+                return CommandHandler.HandleCommand(user, command);
             }
             else
             {
-                return String.Format
+                return new CommandResponse(String.Format
                 (
                     "It looks like you haven't authorized us as a GitHub app in this channel!" +
                     "Please visit this URL to get set up: {0}/api/github/getoauthurl?uuid={1}",
                     _options.WEBSITE_BASE_URL,
                     uuid
-                );
-            }
-                
+                ));
+            }    
         }
 
         [HttpGet]

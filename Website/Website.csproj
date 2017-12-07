@@ -18,7 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Commands\Handlers\" />
     <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SolrServices\SolrServices.csproj" />
   </ItemGroup>
 
 </Project>

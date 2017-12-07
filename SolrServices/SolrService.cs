@@ -40,7 +40,7 @@ namespace SolrServices
         /// </summary>
         /// <param name="search">the search term</param>
         /// <param name="channelId">the channel to filter by</param>
-        public void Query(string search, string channelId)
+        public List<CodeDoc> Query(string search, string channelId)
         {
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
             List<ISolrQuery> filter = new List<ISolrQuery>();
@@ -61,16 +61,10 @@ namespace SolrServices
             var query = new SolrQuery(search);
             var codeQuery = solr.Query(query, opts);
 
-            // pulling the top-ranked author
-            if (codeQuery.Count > 0)
-                write("Author: " + codeQuery[0].Author_Name);
-            else
-                write("nothing returned, try again");
-            foreach (CodeDoc codeDoc in codeQuery)
-            {
-                //write("Found " + codeDoc.Name);
-            }
+            List<CodeDoc> results = new List<CodeDoc>();
+            foreach (CodeDoc doc in codeQuery) results.Add(doc);
 
+            return results;
         }
 
         /// <summary>

@@ -11,10 +11,16 @@ namespace Website.Manager
         private GitHubClient _client;
         private string _gitHubAccessToken;
         private List<String> _repositories;
+        private List<String> _trackedRepositories;
 
         public IReadOnlyCollection<String> Repositories
         {
             get { return _repositories.AsReadOnly(); }
+        }
+
+        public IReadOnlyCollection<String> TrackedRepositories
+        {
+            get { return _trackedRepositories.AsReadOnly(); }
         }
 
         public string GitHubAccessToken
@@ -40,8 +46,24 @@ namespace Website.Manager
         private void UpdateRepositoryIndex()
         {
             _repositories.Clear();
+            _trackedRepositories.Clear();
             var repos = _client.Repository.GetAllForCurrent().Result;
             foreach (var repo in repos) _repositories.Add(repo.Url);
+        }
+
+        public bool TrackRepository(string repositoryName)
+        {
+            if (_repositories.Contains(repositoryName) && !_trackedRepositories.Contains(repositoryName)) {
+                _trackedRepositories.Add(repositoryName);
+                return true;
+            }
+            return false;
+        }
+
+        public bool UntrackRepository(string repositoryName)
+        {
+            // @TODO
+            return false;
         }
     }
 
