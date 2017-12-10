@@ -46,7 +46,6 @@ namespace GitAuth
         {
             Thread.Sleep(1000);
             List<IReadOnlyList<GitHubCommit>> commies = new List<IReadOnlyList<GitHubCommit>>();
-            //List<GithubCommit> coms = new List<GithubCommit>();
             var repos = await client.Repository.GetAllForCurrent();
 
             List<string> fileExt = new List<string> { ".cs", ".py", ".java", ".go", ".js", ".ts", ".c", ".pl", ".swift" };

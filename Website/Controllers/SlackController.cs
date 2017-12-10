@@ -110,7 +110,7 @@ namespace Website.Controllers
             {
                 return new CommandResponse(String.Format
                 (
-                    "It looks like you haven't authorized us as a GitHub app in this channel!" +
+                    "It looks like you haven't authorized us as a GitHub app in this channel! " +
                     "Please visit this URL to get set up: {0}/api/github/getoauthurl?uuid={1}",
                     _options.WEBSITE_BASE_URL,
                     uuid

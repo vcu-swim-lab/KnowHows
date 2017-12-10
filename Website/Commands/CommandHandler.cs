@@ -13,12 +13,12 @@ namespace Website.Commands
             switch(action)
             {
                 case "search":  return HandleSearch(user, command);
-                case "track": return HandleTrack(user, command);
+                case "track":   return HandleTrack(user, command);
                 case "untrack": return HandleUntrack(user, command);
-                case "help": return HandleHelp(user, command);
+                case "help":    return HandleHelp(user, command);
             }
 
-            return new CommandResponse("Command not recognized");
+            return HandleHelp(user, command);
         }
 
         private static CommandResponse HandleSearch(GitHubUser user, Command command)
@@ -35,10 +35,18 @@ namespace Website.Commands
             try
             {
                 string text = command.text, action = text.Split(' ')[0];
-                string repository = command.text.Substring(text.IndexOf(action) + 1);
+                string repository = command.text.Substring(text.IndexOf(action) + (action.Length + 1));
 
-                if(user.TrackRepository(repository)) return new CommandResponse("Successfully tracked repository");
-                else return new CommandResponse("Failed to track repository, did you spell it correctly?");
+                if (user.TrackRepository(repository)) return new CommandResponse("Successfully tracked " + repository);
+                else
+                {
+                    StringBuilder sb = new StringBuilder();
+
+                    sb.AppendLine("The repository specified was not recognized, here are your available untracked repositories: ");
+                    foreach (var repo in user.UntrackedRepositories) sb.AppendLine(repo);
+
+                    return new CommandResponse(sb.ToString());
+                }
             }
             catch (Exception e) { return new CommandResponse("Exception: " + e.ToString()); }
         }
@@ -48,13 +56,22 @@ namespace Website.Commands
             try
             {
                 string text = command.text, action = text.Split(' ')[0];
-                string repository = command.text.Substring(text.IndexOf(action) + 1);
+                string repository = command.text.Substring(text.IndexOf(action) + (action.Length + 1));
 
-                if(user.UntrackRepository(repository)) return new CommandResponse("Successfully untracked repository");
-                else return new CommandResponse("Failed to untrack repository, did you spell it correctly?");
+                if (user.UntrackRepository(repository)) return new CommandResponse("Successfully untracked " + repository);
+                else
+                {
+                    StringBuilder sb = new StringBuilder();
+
+                    sb.AppendLine("The repository specified was not recognized, here are your tracked repositories: ");
+                    foreach (var repo in user.TrackedRepositories) sb.AppendLine(repo);
+
+                    return new CommandResponse(sb.ToString());
+                }
             }
             catch (Exception e) { return new CommandResponse("Exception: " + e.ToString()); }
         }
+
 
         private static CommandResponse HandleHelp(GitHubUser user, Command command)
         {

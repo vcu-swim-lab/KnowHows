@@ -6,7 +6,6 @@ using Noobot.Core.Configuration;
 using Topshelf;
 using System.Collections.Generic;
 using SolrServices;
-using GitAuth;
 
 namespace Swim.HelpMeCode.ConsoleService
 {

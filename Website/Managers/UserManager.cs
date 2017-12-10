@@ -1,6 +1,8 @@
 ﻿using Octokit;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using Website.Managers;
 
 namespace Website.Manager
 {
@@ -13,6 +15,11 @@ namespace Website.Manager
         private List<String> _repositories;
         private List<String> _trackedRepositories;
 
+        public GitHubClient GitHubClient
+        {
+            get { return _client; }
+        }
+
         public IReadOnlyCollection<String> Repositories
         {
             get { return _repositories.AsReadOnly(); }
@@ -23,9 +30,14 @@ namespace Website.Manager
             get { return _trackedRepositories.AsReadOnly(); }
         }
 
+        public IReadOnlyCollection<String> UntrackedRepositories
+        {
+            get { return Repositories.Except(TrackedRepositories).ToList().AsReadOnly(); }
+        }
+
         public string GitHubAccessToken
         {
-            private get { return _gitHubAccessToken; }
+            get { return _gitHubAccessToken; }
             set
             {
                 _gitHubAccessToken = value;
@@ -40,7 +52,8 @@ namespace Website.Manager
             this.ChannelID = channelId;
             this.UserID = userId;
             this._repositories = new List<String>();
-            this._client = new GitHubClient(new ProductHeaderValue("")); // does this need to have a non-empty string?
+            this._trackedRepositories = new List<String>();
+            this._client = new GitHubClient(new ProductHeaderValue(userId));
         }
 
         private void UpdateRepositoryIndex()
@@ -48,13 +61,14 @@ namespace Website.Manager
             _repositories.Clear();
             _trackedRepositories.Clear();
             var repos = _client.Repository.GetAllForCurrent().Result;
-            foreach (var repo in repos) _repositories.Add(repo.Url);
+            foreach (var repo in repos) _repositories.Add(repo.Name);
         }
 
         public bool TrackRepository(string repositoryName)
         {
             if (_repositories.Contains(repositoryName) && !_trackedRepositories.Contains(repositoryName)) {
                 _trackedRepositories.Add(repositoryName);
+                SolrManager.Instance.TrackRepository(this, repositoryName);
                 return true;
             }
             return false;

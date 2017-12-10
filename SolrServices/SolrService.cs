@@ -26,10 +26,8 @@ namespace SolrServices
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
 
             // this works better, can log bad responses if need be. response 1 == bad
-            foreach (var inc in incoming)
-            {
+            foreach (var inc in incoming) {
                 var send = await solr.AddAsync(inc);
-                write(send.Status.ToString());
             }
 
             solr.Commit();
@@ -43,18 +41,18 @@ namespace SolrServices
         public List<CodeDoc> Query(string search, string channelId)
         {
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
+
             List<ISolrQuery> filter = new List<ISolrQuery>();
             filter.Add(new SolrQueryByField("channel", channelId));
+
             var opts = new QueryOptions();
-            opts.ExtraParams = new KeyValuePair<string, string>[]
-            {
+            opts.ExtraParams = new KeyValuePair<string, string>[] {
                 new KeyValuePair<string, string>("wt", "xml") // wt = writertype (response format)
             };
 
             // this should add an additional filter by channel ID 
             // this removes cross contamination
-            foreach (var filt in filter)
-            {
+            foreach (var filt in filter) {
                 opts.AddFilterQueries(filt);
             }
 
@@ -85,32 +83,7 @@ namespace SolrServices
                     ExtractFormat = ExtractFormat.Text
                 });
                 solr.Commit();
-                write(resp.Content);
             }
-        }
-
-        /// <summary>
-        /// Need to work on this.
-        /// </summary>
-        public void GenericQuery()
-        {
-            ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
-
-            var codeQuery = solr.Query(new SolrQuery("main.go"));
-
-            //var q = new SolrHasValueQuery("name");
-
-            foreach (CodeDoc codeDoc in codeQuery)
-            {
-                //write("Found " + codeDoc.Name);
-            }
-
-        }
-
-        public void write(string write)
-        {
-            Console.WriteLine(write);
-            //Logging.Log.Content.Trace(write);
         }
     }
 }
