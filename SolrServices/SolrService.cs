@@ -10,7 +10,7 @@ namespace SolrServices
 {
     public class SolrService
     {
-        string connection = "http://localhost:8983/solr/newish_core";
+        string connection = "http://104.131.188.205:8983/solr/newish_core";
 
         public SolrService()
         {

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text;
 using Website.Manager;
+using Website.Managers;
 
 namespace Website.Commands
 {
@@ -22,11 +23,13 @@ namespace Website.Commands
         }
 
         private static CommandResponse HandleSearch(GitHubUser user, Command command)
-        { 
+        {
+            string text = command.text, action = text.Split(' ')[0];
+            string query = command.text.Substring(text.IndexOf(action) + (action.Length + 1));
+            var results = SolrManager.Instance.PerformQuery(query, user.ChannelID);
+
             StringBuilder sb = new StringBuilder();
-
-            sb.AppendLine("@TODO");
-
+            foreach (var result in results) sb.AppendLine(String.Format("{0} {1}", result.Filename, result.Committer_Name));
             return new CommandResponse(sb.ToString());
         }
 

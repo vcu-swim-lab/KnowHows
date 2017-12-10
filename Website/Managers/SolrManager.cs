@@ -18,6 +18,11 @@ namespace Website.Managers
             this.lastFetchTimes = new Dictionary<String, DateTime>();
         }
 
+        public List<CodeDoc> PerformQuery(String query, String channelId)
+        {
+            return solrService.Query(query, channelId);
+        }
+
         public void TrackRepository(GitHubUser user, String repository)
         {
             List<CodeDoc> result = new List<CodeDoc>();

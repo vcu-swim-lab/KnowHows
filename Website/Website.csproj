@@ -23,7 +23,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\GitAuth\GitAuth.csproj" />
     <ProjectReference Include="..\SolrServices\SolrServices.csproj" />
   </ItemGroup>
 
