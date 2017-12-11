@@ -35,8 +35,9 @@ namespace Processor
             "toString", "fileUpload", "Object", "undefined", "focus", "offscreenBuffering", "unescape", "form", "open", "untaint", "forms", "opener", "valueOf", "frame",
             "option", "window" };
 
-        public string Clean(string input)
+        public string Clean(string input, string extension)
         {
+            // TODO: Cases?
             input = RemoveSubtraction(input);
             input = RemoveComments(input);
             input = RemovePlainText(input);
@@ -45,34 +46,53 @@ namespace Processor
             return input;
         }
 
+        // General
         private string RemoveSubtraction(string input)
         {
-            input = Regex.Replace(input, "((\\n-.*?\\n)|\\n\\+)", "", RegexOptions.IgnoreCase);
-            return input;
+            return Regex.Replace(input, "((\\n-.*?\\n)|\\n\\+)", "", RegexOptions.IgnoreCase);
         }
 
         private string RemoveReservedWords(string input)
         {
-            input = Regex.Replace(input, "\\b" + string.Join("\\b|\\b", reservedWords) + "\\b", "", RegexOptions.IgnoreCase);
-            return input;
+            return Regex.Replace(input, "\\b" + string.Join("\\b|\\b", reservedWords) + "\\b", "", RegexOptions.IgnoreCase);
         }
 
         private string RemovePlainText(string input)
         {
-            input = Regex.Replace(input, "((\".*?\")|\'.*?\')", "", RegexOptions.IgnoreCase);
-            return input;
+            return Regex.Replace(input, "((\".*?\")|\'.*?\')", "", RegexOptions.IgnoreCase);
         }
 
         private string RemoveMisc(string input)
         {
-            input = Regex.Replace(input, "(=|,|[0-9]|\\(|\\)|;|@|\\.|\\-|\\+|\\*)", "", RegexOptions.IgnoreCase);
-            return input;
+            return Regex.Replace(input, "(=|,|[0-9]|\\(|\\)|;|@|\\.|\\-|\\+|\\*)", "", RegexOptions.IgnoreCase);
         }
 
         private string RemoveComments(string input)
         {
-            input = Regex.Replace(input, "(\\\\.*?\\n|\\\\*.*?\\*\\\\)", "", RegexOptions.IgnoreCase); // might not work
-            return input;
+            return Regex.Replace(input, "(\\\\.*?\\n|\\\\*.*?\\*\\\\)", "", RegexOptions.IgnoreCase); // might not work
         }
+
+        // C, C++, C#
+        private string CRemoveComments(string input)
+        {
+            return Regex.Replace(input, "\/\*[\s\S]*?\*\/|(?:^|[^\\])\/\/.*$", "", RegexOptions.IgnoreCase); // Block and inline
+        }
+
+        private List<string> CMatchFunctions(string input)
+        {
+            return Regex.Matches(input, "(?:([\\w]+)\\.)?([\\w]+)+\\(").OfType<Match>().Select(m => m.Groups[2].Value).ToList();
+        }
+
+        private List<string> CMatchObjects(string input)
+        {
+            return Regex.Matches(input, "(?:([\\w]+)\\.)?([\\w]+)+\\(").OfType<Match>().Select(m => m.Groups[1].Value).ToList();
+        }
+
+        private List<string> CMatchIncludes(string input)
+        {
+            return Regex.Matches(input, "#include[\\s]+[<\"]([^>\"]+)[>\"]").OfType<Match>().Select(m => m.Groups[1].Value).ToList();
+        }
+
+        // TODO: Go, Python, etc.
     }
 }
