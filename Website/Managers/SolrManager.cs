@@ -30,63 +30,55 @@ namespace Website.Managers
             return Query(query, channelId);
         }
 
+        private static String[] validExtensions = new String[] { ".cs", ".java" };
         public void TrackRepository(GitHubUser user, String repository)
         {
             WebClient client = new WebClient();
             List<CodeDoc> result = new List<CodeDoc>();
 
+            ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
             var repos = user.GitHubClient.Repository.GetAllForCurrent().Result;
             var repo = repos.Where(r => r.Name == repository).ToList()[0];
             var commits = user.GitHubClient.Repository.Commit.GetAll(repo.Owner.Login, repo.Name).Result;
 
             foreach (var commit in commits)
             {
-                if (commit.Author.Login != repo.Owner.Login) continue;
+                if (commit.Author != null &&commit.Author.Login != repo.Owner.Login) continue;
 
                 var associated_files = user.GitHubClient.Repository.Commit.Get(repo.Id, commit.Sha).Result;
                 foreach (var file in associated_files.Files)
                 {
+                    if (!validExtensions.Contains(Path.GetExtension(file.Filename))) continue;
+
                     CodeDoc doc = new CodeDoc();
+                    doc.Id = file.Sha;
                     doc.Sha = file.Sha;
                     doc.Author_Date = commit.Commit.Author.Date.Date;
                     doc.Author_Name = commit.Commit.Author.Name;
                     doc.Channel = user.ChannelID;
                     doc.Committer_Name = user.UserID;
                     doc.Accesstoken = user.GitHubAccessToken;
+
                     doc.Filename = file.Filename;
-                    doc.Previous_File_Name = file.PreviousFileName;
-                    doc.Id = user.ChannelID;          
-                    doc.Content = client.DownloadString(new Uri(file.RawUrl));
+                    doc.Previous_File_Name = file.PreviousFileName;                        
                     doc.Raw_Url = file.RawUrl;
                     doc.Blob_Url = file.BlobUrl;
-                    result.Add(doc);
+
+                    // doc.Content = client.DownloadString(new Uri(file.RawUrl));    
+                    doc.Patch = file.Patch;
+
+                    solr.Add(doc);
                     Console.WriteLine("Adding {0} to Solr", doc.Filename);
                 }
             }
-            AddIndexed(result);
+
+            solr.Commit();
             Console.WriteLine("Finished tracking repository {0} for {1} to Solr", repository, user.UUID);
         }
 
         public void UntrackRepository(GitHubUser user, String repository)
         {
             throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// this is how we should be entering our data in, for searchability
-        /// </summary>
-        /// <param name="incoming"></param>
-        public async Task AddIndexed(List<CodeDoc> incoming)
-        {
-            ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
-
-            // this works better, can log bad responses if need be. response 1 == bad
-            foreach (var inc in incoming)
-            {
-                var send = await solr.AddAsync(inc);
-            }
-
-            solr.Commit();
         }
 
         /// <summary>
@@ -99,21 +91,12 @@ namespace Website.Managers
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
 
             List<ISolrQuery> filter = new List<ISolrQuery>();
-            filter.Add(new SolrQueryByField("channel", channelId));
-
             var opts = new QueryOptions();
-            opts.ExtraParams = new KeyValuePair<string, string>[] {
-                new KeyValuePair<string, string>("wt", "xml") // wt = writertype (response format)
-            };
 
-            // this should add an additional filter by channel ID 
-            // this removes cross contamination
-            foreach (var filt in filter)
-            {
-                opts.AddFilterQueries(filt);
-            }
+            filter.Add(new SolrQueryByField("channel", channelId));        
+            foreach (var filt in filter) opts.AddFilterQueries(filt);
 
-            var query = new SolrQuery(search);
+            var query = new SolrQuery("text:"+search);
             var codeQuery = solr.Query(query, opts);
 
             List<CodeDoc> results = new List<CodeDoc>();
