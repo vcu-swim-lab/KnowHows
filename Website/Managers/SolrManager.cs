@@ -68,7 +68,7 @@ namespace Website.Managers
             AddIndexed(result);
         }
 
-        public void UnrackRepository(GitHubUser user, String repository)
+        public void UntrackRepository(GitHubUser user, String repository)
         {
             throw new NotImplementedException();
         }

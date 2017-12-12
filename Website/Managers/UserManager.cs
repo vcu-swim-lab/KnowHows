@@ -77,7 +77,12 @@ namespace Website.Manager
 
         public bool UntrackRepository(string repositoryName)
         {
-            // @TODO
+            if(_trackedRepositories.Contains(repositoryName)) {
+                _trackedRepositories.Remove(repositoryName);
+                // not running this async yet so that the NotImplementedException gets passed up to the CommandHandler
+                SolrManager.Instance.UntrackRepository(this, repositoryName);
+                return true;
+            }
             return false;
         }
     }
