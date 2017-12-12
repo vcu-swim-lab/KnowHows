@@ -44,7 +44,6 @@ namespace Website.Managers
                 if (commit.Author.Login != repo.Owner.Login) continue;
 
                 var associated_files = user.GitHubClient.Repository.Commit.Get(repo.Id, commit.Sha).Result;
-
                 foreach (var file in associated_files.Files)
                 {
                     CodeDoc doc = new CodeDoc();
@@ -64,8 +63,8 @@ namespace Website.Managers
                     Console.WriteLine("Adding {0} to Solr", doc.Filename);
                 }
             }
-
             AddIndexed(result);
+            Console.WriteLine("Finished tracking repository {0} for {1} to Solr", repository, user.UUID);
         }
 
         public void UntrackRepository(GitHubUser user, String repository)

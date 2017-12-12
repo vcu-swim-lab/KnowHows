@@ -21,6 +21,11 @@ namespace Website.Manager
             get { return _client; }
         }
 
+        public String UUID
+        {
+            get { return String.Format("{0}.{1}.{2}", TeamID, ChannelID, UserID); }
+        }
+
         public IReadOnlyCollection<String> Repositories
         {
             get { return _repositories.AsReadOnly(); }
@@ -121,9 +126,9 @@ namespace Website.Manager
             return githubUsers[uuid];
         }
 
-        private static String GetTeamIDFromUUID(string uuid) { return uuid.Split(".")[0]; }
-        private static String GetChannelIDFromUUID(string uuid) { return uuid.Split(".")[1]; }
-        private static String GetUserIDFromUUID(string uuid) { return uuid.Split(".")[2]; }
-        private static String GetTeamBasedIDFromUUID(string uuid) { return GetTeamIDFromUUID(uuid) + ".users." + GetUserIDFromUUID(uuid); }
+        public static String GetTeamIDFromUUID(string uuid) { return uuid.Split(".")[0]; }
+        public static String GetChannelIDFromUUID(string uuid) { return uuid.Split(".")[1]; }
+        public static String GetUserIDFromUUID(string uuid) { return uuid.Split(".")[2]; }
+        public static String GetTeamBasedIDFromUUID(string uuid) { return GetTeamIDFromUUID(uuid) + ".users." + GetUserIDFromUUID(uuid); }
     }
 }
