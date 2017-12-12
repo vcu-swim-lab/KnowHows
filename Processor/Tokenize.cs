@@ -7,6 +7,7 @@ namespace Processor
     {
         // put this in config
         // only for Go, Java, Javascript, C#, F#(some), PHP, C++, C, Python
+        // TODO: Language specific filtering
         private List<string> reservedWords = new List<string>{ "BEGIN", "END", "\\case", "_ _FILE_ _", "_ _LINE __", "__CLASS__", "__DIR__", "__FILE__",
             "__FUNCTION__", "__LINE__", "__METHOD__", "__NAMESPACE__", "__TRAIT__", "__halt_compiler()", "abstract", "alias", "alignas", "alignof", "and",
             "and_eq", "array()", "as", "asm", "asr", "assert", "atomic", "atomic_cancel", "atomic_commit", "atomic_noexcept", "auto", "base", "begin", "bitand",
@@ -37,55 +38,87 @@ namespace Processor
 
         public string Clean(string input, string extension)
         {
-            // TODO: Cases?
-            input = RemoveSubtraction(input);
-            input = RemoveComments(input);
-            input = RemovePlainText(input);
+            input = RemoveStrings(input);
             input = RemoveReservedWords(input);
-            input = RemoveMisc(input);
+
+            switch (extension)
+            {
+                case ".c", ".cpp", ".cs", ".h":
+                    input = CRemoveComments(input);
+                    break;
+                case ".py":
+                    input = PyRemoveComments(input);
+                    break;
+                default:
+                    break;
+            }
+
             return input;
         }
 
-        // General
-        private string RemoveSubtraction(string input)
+        public List<string> Imports(string input, string extension)
         {
-            return Regex.Replace(input, "((\\n-.*?\\n)|\\n\\+)", "", RegexOptions.IgnoreCase);
+            switch (extension)
+            {
+                case ".c", ".cpp", ".cs", ".h":
+                    return CMatchIncludes(input);
+                case ".py":
+                    return PyMatchImports(input);
+                default;
+                    return;
+            }
         }
 
+        public List<string> Objects(string input, string extension)
+        {
+            switch (extension)
+            {
+                case ".c", ".cpp", ".cs", ".h":
+                    return CMatchObjects(input);
+                case ".py":
+                    return PyMatchObjects(input);
+                default;
+                    return;
+            }
+        }
+
+        public List<string> Functions(string input, string extension)
+        {
+            switch (extension)
+            {
+                case ".c", ".cpp", ".cs", ".h":
+                    return CMatchFunctions(input);
+                case ".py":
+                    return PyMatchFunctions(input);
+                default;
+                    return;
+            }
+        }
+
+        // General
         private string RemoveReservedWords(string input)
         {
-            return Regex.Replace(input, "\\b" + string.Join("\\b|\\b", reservedWords) + "\\b", "", RegexOptions.IgnoreCase);
+            return Regex.Replace(input, "\\b" + string.Join("\\b|\\b", reservedWords) + "\\b", "", RegexOptions.IgnoreCase | RegexOptions.Multiline);
         }
 
-        private string RemovePlainText(string input)
+        private string RemoveStrings(string input)
         {
-            return Regex.Replace(input, "((\".*?\")|\'.*?\')", "", RegexOptions.IgnoreCase);
-        }
-
-        private string RemoveMisc(string input)
-        {
-            return Regex.Replace(input, "(=|,|[0-9]|\\(|\\)|;|@|\\.|\\-|\\+|\\*)", "", RegexOptions.IgnoreCase);
-        }
-
-        private string RemoveComments(string input)
-        {
-            return Regex.Replace(input, "(\\\\.*?\\n|\\\\*.*?\\*\\\\)", "", RegexOptions.IgnoreCase); // might not work
+            return Regex.Replace(input, "\"(?:[^\\\\\"]|\\.)*\"|\'(?:[^\\\\\']|\\.)*\'", "", RegexOptions.IgnoreCase | RegexOptions.Multiline);
         }
 
         // C, C++, C#
         private string CRemoveComments(string input)
-        {
-            return Regex.Replace(input, "\/\*[\s\S]*?\*\/|(?:^|[^\\])\/\/.*$", "", RegexOptions.IgnoreCase); // Block and inline
+            return Regex.Replace(input, "\\/\\*[\\s\\S]*?\\*\\/|(?:^|[^\\\\])\\/\\/.*$", RegexOptions.IgnoreCase | RegexOptions.Multiline); // Block and inline
         }
 
         private List<string> CMatchFunctions(string input)
         {
-            return Regex.Matches(input, "(?:([\\w]+)\\.)?([\\w]+)+\\(").OfType<Match>().Select(m => m.Groups[2].Value).ToList();
+            return Regex.Matches(input, "(?:([\\w]+)\\.)?(\\w+)\\(").OfType<Match>().Select(m => m.Groups[2].Value).ToList();
         }
 
         private List<string> CMatchObjects(string input)
         {
-            return Regex.Matches(input, "(?:([\\w]+)\\.)?([\\w]+)+\\(").OfType<Match>().Select(m => m.Groups[1].Value).ToList();
+            return Regex.Matches(input, "(?:([\\w]+)\\.)?(\\w+)\\(").OfType<Match>().Select(m => m.Groups[1].Value).ToList();
         }
 
         private List<string> CMatchIncludes(string input)
@@ -93,6 +126,25 @@ namespace Processor
             return Regex.Matches(input, "#include[\\s]+[<\"]([^>\"]+)[>\"]").OfType<Match>().Select(m => m.Groups[1].Value).ToList();
         }
 
-        // TODO: Go, Python, etc.
+        // Python
+        private string PyRemoveComments(string input)
+        {
+            return Regex.Replace(input, "#.*$", "", RegexOptions.IgnoreCase | RegexOptions.Multiline); // Block and inline
+        }
+
+        private List<string> PyMatchFunctions(string input)
+            return Regex.Matches(input, "(?:([\\w]+)\\.)?(\\w+)\\(").OfType<Match>().Select(m => m.Groups[2].Value).ToList();
+        }
+
+        private List<string> PyMatchObjects(string input)
+        {
+            return Regex.Matches(input, "(?:([\\w]+)\\.)?(\\w+)\\(").OfType<Match>().Select(m => m.Groups[1].Value).ToList();
+        }
+
+        private List<string> PyMatchImports(string input)
+        {
+            return Regex.Matches(input, "(?:from (\\w+) )?(?:import ((?:\\.?\\w)+))").OfType<Match>().Select(m => m.Groups[2].Value).ToList();
+        }
+
     }
 }
