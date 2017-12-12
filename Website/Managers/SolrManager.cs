@@ -33,7 +33,6 @@ namespace Website.Managers
         private static String[] validExtensions = new String[] { ".cs", ".java", ".c", ".cpp", ".h", ".py", ".js" };
         public void TrackRepository(GitHubUser user, String repository)
         {
-            //WebClient client = new WebClient();
             List<CodeDoc> result = new List<CodeDoc>();
 
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
@@ -62,7 +61,6 @@ namespace Website.Managers
                     doc.Previous_File_Name = file.PreviousFileName;                        
                     doc.Raw_Url = file.RawUrl;
                     doc.Blob_Url = file.BlobUrl;
-                    // doc.Content = client.DownloadString(new Uri(file.RawUrl));    
                     doc.Patch = file.Patch;
                     doc.Repo = repo.Name;
 
@@ -81,11 +79,11 @@ namespace Website.Managers
         /// <param name="user"></param>
         /// <param name="channel"></param>
         /// <param name="repository"></param>
-        public void UntrackRepository(GitHubUser user, String channel, String repository)
+        public void UntrackRepository(GitHubUser user, String repository)
         {
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
 
-            solr.Delete( new SolrQuery("channel:" + channel) && new SolrQuery("repo:" + repository) && new SolrQuery("committer_name:"+user.UserID));
+            solr.Delete(new SolrQuery("channel:" + user.ChannelID) && new SolrQuery("repo:" + repository) && new SolrQuery("committer_name:" + user.UserID));
 
             solr.Commit();
         }
