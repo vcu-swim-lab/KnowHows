@@ -43,5 +43,8 @@ namespace Website.Utility.Solr
 
         [SolrField("channel")]
         public string Channel { get; set; }
+
+        [SolrField("repo")]
+        public string Repo { get; set; }
     }
 }

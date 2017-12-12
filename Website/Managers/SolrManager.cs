@@ -64,6 +64,7 @@ namespace Website.Managers
                     doc.Blob_Url = file.BlobUrl;
                     // doc.Content = client.DownloadString(new Uri(file.RawUrl));    
                     doc.Patch = file.Patch;
+                    doc.Repo = repo.Name;
 
                     solr.Add(doc);
                     Console.WriteLine("Adding {0} to Solr", doc.Filename);
@@ -74,9 +75,19 @@ namespace Website.Managers
             Console.WriteLine("Finished tracking repository {0} for {1} to Solr", repository, user.UUID);
         }
 
-        public void UntrackRepository(GitHubUser user, String repository)
+        /// <summary>
+        /// removes a given user's repo from a channel
+        /// </summary>
+        /// <param name="user"></param>
+        /// <param name="channel"></param>
+        /// <param name="repository"></param>
+        public void UntrackRepository(GitHubUser user, String channel, String repository)
         {
-            throw new NotImplementedException();
+            ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
+
+            solr.Delete( new SolrQuery("channel:" + channel) && new SolrQuery("repo:" + repository) && new SolrQuery("committer_name:"+user.UserID));
+
+            solr.Commit();
         }
 
         /// <summary>
