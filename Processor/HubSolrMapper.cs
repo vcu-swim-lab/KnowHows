@@ -1,5 +1,4 @@
-﻿using GitAuth;
-using SolrServices;
+﻿using SolrServices;
 using System.Collections.Generic;
 
 namespace Processor
@@ -13,7 +12,7 @@ namespace Processor
         /// <param name="coms">Commits</param>
         /// <param name="toke">access token</param>
         /// <returns></returns>
-        public List<CodeDoc> HubToSolr(List<GithubCommit> coms, string toke)
+        /*public List<CodeDoc> HubToSolr(List<GithubCommit> coms, string toke)
         {
             // TODO: get channel Id from slack to filter with later. 
             List<CodeDoc> solrStuff = new List<CodeDoc>();
@@ -44,6 +43,6 @@ namespace Processor
             }
 
             return solrStuff;
-        }
+        }*/
     }
 }

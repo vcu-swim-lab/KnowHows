@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Website.Managers;
 
 namespace Website.Manager
@@ -68,7 +69,7 @@ namespace Website.Manager
         {
             if (_repositories.Contains(repositoryName) && !_trackedRepositories.Contains(repositoryName)) {
                 _trackedRepositories.Add(repositoryName);
-                SolrManager.Instance.TrackRepository(this, repositoryName);
+                Task.Run( () => SolrManager.Instance.TrackRepository(this, repositoryName));
                 return true;
             }
             return false;

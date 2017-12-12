@@ -29,7 +29,7 @@ namespace Website.Commands
             var results = SolrManager.Instance.PerformQuery(query, user.ChannelID);
 
             StringBuilder sb = new StringBuilder();
-            foreach (var result in results) sb.AppendLine(String.Format("{0} {1}", result.Filename, result.Committer_Name));
+            foreach (var result in results) sb.AppendLine(String.Format("{0} @{1}", result.Filename, result.Committer_Name));
             return new CommandResponse(sb.ToString());
         }
 

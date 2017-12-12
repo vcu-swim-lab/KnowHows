@@ -205,10 +205,6 @@
     <Content Include="noobot.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\GitAuth\GitAuth.csproj">
-      <Project>{ec237577-be18-4daa-8fd9-031c6c8b3520}</Project>
-      <Name>GitAuth</Name>
-    </ProjectReference>
     <ProjectReference Include="..\SolrServices\SolrServices.csproj">
       <Project>{2AE6C6DE-47CB-4E73-8D34-E4F9DAB568B6}</Project>
       <Name>SolrServices</Name>
