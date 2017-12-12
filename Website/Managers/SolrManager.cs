@@ -43,7 +43,7 @@ namespace Website.Managers
 
             foreach (var commit in commits)
             {
-                if (commit.Author != null &&commit.Author.Login != repo.Owner.Login) continue;
+                if (commit.Author != null && commit.Author.Login != user.GitHubClient.User.Current().Result.Login) continue;
 
                 var associated_files = user.GitHubClient.Repository.Commit.Get(repo.Id, commit.Sha).Result;
                 foreach (var file in associated_files.Files)
@@ -94,7 +94,7 @@ namespace Website.Managers
             filter.Add(new SolrQueryByField("channel", channelId));        
             foreach (var filt in filter) opts.AddFilterQueries(filt);
 
-            var query = new SolrQuery("text:"+search);
+            var query = new SolrQuery("text:\"" + search + "\"");
             var codeQuery = solr.Query(query, opts);
 
             List<CodeDoc> results = new List<CodeDoc>();
