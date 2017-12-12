@@ -63,37 +63,40 @@ namespace Website.Commands
         }
 
         private static CommandResponse HandleTrack(GitHubUser user, Command command)
-        {       
+        {
             string text = command.text, action = text.Split(' ')[0];
-            string repository = command.text.Substring(text.IndexOf(action) + (action.Length + 1));
+            string repository = text.Split(' ').Length >= 2 ? command.text.Substring(text.IndexOf(action) + (action.Length + 1)) : "";
 
             if (user.TrackRepository(repository)) return new CommandResponse("*Successfully tracked* " + repository);
             else
             {
                 StringBuilder sb = new StringBuilder();
-
-                sb.AppendLine("*The repository specified was not recognized, here are your available untracked repositories:* ");
-                foreach (var repo in user.UntrackedRepositories) sb.AppendLine("• " + repo);
-
+                sb.AppendLine("*Here are your available untracked repositories:* ");
+                sb.AppendLine(FormatRepositoryList(user.UntrackedRepositories));
                 return new CommandResponse(sb.ToString());
             }
         }
 
         private static CommandResponse HandleUntrack(GitHubUser user, Command command)
-        {      
+        {
             string text = command.text, action = text.Split(' ')[0];
-            string repository = command.text.Substring(text.IndexOf(action) + (action.Length + 1));
+            string repository = text.Split(' ').Length >= 2 ? command.text.Substring(text.IndexOf(action) + (action.Length + 1)) : "";
 
             if (user.UntrackRepository(repository)) return new CommandResponse("*Successfully untracked* " + repository);
             else
             {
                 StringBuilder sb = new StringBuilder();
-
-                sb.AppendLine("*The repository specified was not recognized, here are your tracked repositories:* ");
-                foreach (var repo in user.TrackedRepositories) sb.AppendLine("• " + repo);
-
+                sb.AppendLine("*Here are your available tracked repositories:* ");
+                sb.AppendLine(FormatRepositoryList(user.TrackedRepositories));
                 return new CommandResponse(sb.ToString());
             }
+        }
+
+        private static String FormatRepositoryList(IReadOnlyCollection<String> list)
+        {
+            StringBuilder sb = new StringBuilder();
+            foreach (var repo in list) sb.AppendLine("• " + repo);
+            return sb.ToString();
         }
 
         private static CommandResponse HandleHelp(GitHubUser user, Command command)
