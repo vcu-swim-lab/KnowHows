@@ -30,10 +30,10 @@ namespace Website.Managers
             return Query(query, channelId);
         }
 
-        private static String[] validExtensions = new String[] { ".cs", ".java" };
+        private static String[] validExtensions = new String[] { ".cs", ".java", ".c", ".cpp", ".h", ".py", ".js" };
         public void TrackRepository(GitHubUser user, String repository)
         {
-            WebClient client = new WebClient();
+            //WebClient client = new WebClient();
             List<CodeDoc> result = new List<CodeDoc>();
 
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
@@ -58,12 +58,10 @@ namespace Website.Managers
                     doc.Channel = user.ChannelID;
                     doc.Committer_Name = user.UserID;
                     doc.Accesstoken = user.GitHubAccessToken;
-
                     doc.Filename = file.Filename;
                     doc.Previous_File_Name = file.PreviousFileName;                        
                     doc.Raw_Url = file.RawUrl;
                     doc.Blob_Url = file.BlobUrl;
-
                     // doc.Content = client.DownloadString(new Uri(file.RawUrl));    
                     doc.Patch = file.Patch;
 
@@ -103,27 +101,6 @@ namespace Website.Managers
             foreach (CodeDoc doc in codeQuery) results.Add(doc);
 
             return results;
-        }
-
-        /// <summary>
-        /// getting weird errors but it sends the documents
-        /// </summary>
-        /// <param name="filePath"></param>
-        /// <param name="fileName"></param>
-        /// <returns></returns>
-        public async Task AddWithoutIndex(string filePath, string fileName)
-        {
-            ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
-
-            using (var file = File.OpenRead(filePath))
-            {
-                var resp = await solr.ExtractAsync(new ExtractParameters(file, "main.go")
-                {
-                    ExtractOnly = false,
-                    ExtractFormat = ExtractFormat.Text
-                });
-                solr.Commit();
-            }
         }
     }
 }

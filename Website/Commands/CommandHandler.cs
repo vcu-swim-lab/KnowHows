@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using Website.Manager;
 using Website.Managers;
+using Website.Utility.Solr;
 
 namespace Website.Commands
 {
@@ -31,8 +33,32 @@ namespace Website.Commands
             var results = SolrManager.Instance.PerformQuery(query, user.ChannelID);
 
             StringBuilder sb = new StringBuilder();
+
             if (results.Count == 0) sb.AppendLine("No results found");
-            else foreach (var result in results) sb.AppendLine(String.Format("{0} <@{1}>", result.Filename, result.Committer_Name));
+            else
+            {
+                sb.AppendLine(String.Format("Found {0} results...", results.Count));
+
+                for (int i = 0; i < results.Count; i++)
+                {
+                    if (sb.Length > 5000)
+                    {
+                        sb.AppendLine(String.Format("Max message length reached, truncating *{0}* results", results.Count - i));
+                        break;
+                    }
+                    else
+                    {
+                        var result = results[i];
+                        sb.AppendLine(String.Format("• *<@{0}>* made changes to *{1}* on *{2}* (commit *{3}*) ```{4}```",
+                            result.Committer_Name,
+                            result.Filename,
+                            result.Author_Date.ToShortDateString(),
+                            result.Sha,
+                            result.Patch));
+                    }
+                }
+            }
+
             return new CommandResponse(sb.ToString());
         }
 
