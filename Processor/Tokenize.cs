@@ -1,5 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Processor
 {
@@ -43,7 +44,10 @@ namespace Processor
 
             switch (extension)
             {
-                case ".c", ".cpp", ".cs", ".h":
+                case ".c":
+                case ".cpp":
+                case ".cs":
+                case ".h":
                     input = CRemoveComments(input);
                     break;
                 case ".py":
@@ -60,12 +64,15 @@ namespace Processor
         {
             switch (extension)
             {
-                case ".c", ".cpp", ".cs", ".h":
+                case ".c":
+                case ".cpp":
+                case ".cs":
+                case ".h":
                     return CMatchIncludes(input);
                 case ".py":
                     return PyMatchImports(input);
-                default;
-                    return;
+                default:
+                    return new List<string>();
             }
         }
 
@@ -73,12 +80,15 @@ namespace Processor
         {
             switch (extension)
             {
-                case ".c", ".cpp", ".cs", ".h":
+                case ".c":
+                case ".cpp":
+                case ".cs":
+                case ".h":
                     return CMatchObjects(input);
                 case ".py":
                     return PyMatchObjects(input);
-                default;
-                    return;
+                default:
+                    return new List<string>();
             }
         }
 
@@ -86,12 +96,15 @@ namespace Processor
         {
             switch (extension)
             {
-                case ".c", ".cpp", ".cs", ".h":
+                case ".c":
+                case ".cpp":
+                case ".cs":
+                case ".h":
                     return CMatchFunctions(input);
                 case ".py":
                     return PyMatchFunctions(input);
-                default;
-                    return;
+                default:
+                    return new List<string>();
             }
         }
 
@@ -108,7 +121,8 @@ namespace Processor
 
         // C, C++, C#
         private string CRemoveComments(string input)
-            return Regex.Replace(input, "\\/\\*[\\s\\S]*?\\*\\/|(?:^|[^\\\\])\\/\\/.*$", RegexOptions.IgnoreCase | RegexOptions.Multiline); // Block and inline
+        {
+            return Regex.Replace(input, "\\/\\*[\\s\\S]*?\\*\\/|(?:^|[^\\\\])\\/\\/.*$", "", RegexOptions.IgnoreCase | RegexOptions.Multiline); // Block and inline
         }
 
         private List<string> CMatchFunctions(string input)
@@ -133,6 +147,7 @@ namespace Processor
         }
 
         private List<string> PyMatchFunctions(string input)
+        {
             return Regex.Matches(input, "(?:([\\w]+)\\.)?(\\w+)\\(").OfType<Match>().Select(m => m.Groups[2].Value).ToList();
         }
 
