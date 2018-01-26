@@ -1,14 +1,125 @@
 ﻿using System.Text.RegularExpressions;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
+using System.Diagnostics;
+using System.Xml.Linq;
+using System.Collections.ObjectModel;
+using System;
 
 namespace Processor
 {
     public class Tokenize
     {
-        // put this in config
-        // only for Go, Java, Javascript, C#, F#(some), PHP, C++, C, Python
-        // TODO: Language specific filtering
+        /*
+         * Build the argument string for the command line.
+         */
+        private string BuildArgumentString(Collection<string> arguments)
+        {
+            return String.Join(" ", arguments.ToArray());
+        }
+
+        /*
+         * Calls srcML from the PATH with the specified arguments.
+         * Returns a string that is parsed into an XDocument.
+         *
+         * TODO: Throw exception or fail gracefully when srcML is not present.
+         */
+        private XDocument SrcMLRunner(string arguments)
+        {
+            string output;
+            using (Process process = new Process())
+            {
+                process.StartInfo.FileName = "srcml.exe";
+                process.StartInfo.Arguments = arguments;
+                process.StartInfo.CreateNoWindow = true;
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.RedirectStandardOutput = true;
+                process.StartInfo.RedirectStandardError = true;
+
+                process.Start();
+                output = process.StandardOutput.ReadToEnd();
+                process.WaitForExit();
+            }
+
+            return XDocument.Parse(output);
+        }
+
+        /*
+         * Determine the language from the file extension.
+         * Taken from https://github.com/github/linguist/blob/master/lib/linguist/languages.yml.
+         * Returns null on languages that cannot be parsed by srcML.
+         */
+        public static string GetLanguage(String filename)
+        {
+            var extension = Path.GetExtension(filename);
+            switch (extension)
+            {
+                case ".c":
+                case ".cats":
+                case ".idc":
+                    return "C";
+                case ".cpp":
+                case ".c++":
+                case ".cc":
+                case ".cp":
+                case ".cxx":
+                case ".h":
+                case ".h++":
+                case ".hh":
+                case ".hpp":
+                case ".hxx":
+                case ".inc":
+                case ".inl":
+                case ".ino":
+                case ".ipp":
+                case ".re":
+                case ".tcc":
+                case ".tpp":
+                    return "C++";
+                case ".java":
+                    return "Java";
+                case ".aj":
+                    return "AspectJ";
+                case ".cs":
+                case ".cake":
+                case ".cshtml":
+                case ".csx":
+                    return "C#";
+                default:
+                    return "";
+            }
+        }
+
+        /*
+         * Generate srcML document for raw input. Requires filename to determine language.
+         * Works on snippets, e.g. diffs or full files.
+         * Returns null on documents without a valid extension.
+         */
+        public XDocument GenerateSrcML(string filename, string input)
+        {
+            var arguments = new Collection<string>();
+            arguments.Add(string.Format("--text \"{0}\"", input));
+
+            var language = GetLanguage(filename);
+            if (string.IsNullOrEmpty(language)) return null;
+            arguments.Add(string.Format("--language \"{0}\"", language));
+
+            return SrcMLRunner(BuildArgumentString(arguments));
+        }
+
+        /*
+         * Generate srcML document from directory path containing files.
+         * For use parsing full repos.
+         */
+        public XDocument GenerateSrcML(string directory)
+        {
+            var arguments = new Collection<string>();
+            arguments.Add(directory);
+
+            return SrcMLRunner(BuildArgumentString(arguments));
+        }
+
         private List<string> reservedWords = new List<string>{ "BEGIN", "END", "\\case", "_ _FILE_ _", "_ _LINE __", "__CLASS__", "__DIR__", "__FILE__",
             "__FUNCTION__", "__LINE__", "__METHOD__", "__NAMESPACE__", "__TRAIT__", "__halt_compiler()", "abstract", "alias", "alignas", "alignof", "and",
             "and_eq", "array()", "as", "asm", "asr", "assert", "atomic", "atomic_cancel", "atomic_commit", "atomic_noexcept", "auto", "base", "begin", "bitand",
@@ -160,6 +271,5 @@ namespace Processor
         {
             return Regex.Matches(input, "(?:from (\\w+) )?(?:import ((?:\\.?\\w)+))").OfType<Match>().Select(m => m.Groups[2].Value).ToList();
         }
-
     }
 }
