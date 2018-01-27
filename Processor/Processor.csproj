@@ -46,7 +46,8 @@
     <Compile Include="HubSolrMapper.cs" />
     <Compile Include="Manager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Tokenize.cs" />
+    <Compile Include="SrcML.cs" />
+    <Compile Include="Tokenizer.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
