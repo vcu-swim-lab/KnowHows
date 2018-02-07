@@ -63,6 +63,7 @@ namespace Website.Managers
                     doc.Blob_Url = file.BlobUrl;
                     doc.Patch = file.Patch;
                     doc.Repo = repo.Name;
+                    doc.Html_Url = repo.HtmlUrl;
 
                     solr.Add(doc);
                     Console.WriteLine("Adding {0} to Solr", doc.Filename);
@@ -102,6 +103,8 @@ namespace Website.Managers
 
             filter.Add(new SolrQueryByField("channel", channelId));        
             foreach (var filt in filter) opts.AddFilterQueries(filt);
+            // return top 5 results
+            opts.Rows = 5;
 
             var query = new SolrQuery("text:\"" + search + "\"");
             var codeQuery = solr.Query(query, opts);

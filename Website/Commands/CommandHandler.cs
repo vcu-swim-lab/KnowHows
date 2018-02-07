@@ -39,23 +39,19 @@ namespace Website.Commands
             {
                 sb.AppendLine(String.Format("Found *{0}* results...", results.Count));
 
+                // should always be a max of 5 results, set in Solr Query
                 for (int i = 0; i < results.Count; i++)
                 {
-                    if (sb.Length > 5000)
-                    {
-                        sb.AppendLine(String.Format("Max message length reached, truncating *{0}* results", results.Count - i));
-                        break;
-                    }
-                    else
-                    {
-                        var result = results[i];
-                        sb.AppendLine(String.Format("• *<@{0}>* made changes to *{1}* on *{2}* (commit *{3}*) ```{4}```",
-                            result.Committer_Name,
-                            result.Filename,
-                            result.Author_Date.ToShortDateString(),
-                            result.Sha,
-                            result.Patch));
-                    }
+                    var result = results[i];
+                    // dont return results from questioner
+                    if (result.Committer_Name == user.UserID)
+                        continue;
+
+                    sb.AppendLine(String.Format("• *<@{0}>* made changes to *{1}* on *{2}* (*{3}*). ",
+                        result.Committer_Name,
+                        result.Filename,
+                        result.Author_Date.ToShortDateString(),
+                        result.Html_Url));
                 }
             }
 

@@ -46,5 +46,8 @@ namespace Website.Utility.Solr
 
         [SolrField("repo")]
         public string Repo { get; set; }
+
+        [SolrField("html_url")]
+        public string Html_Url { get; set; }
     }
 }
