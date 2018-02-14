@@ -49,5 +49,8 @@ namespace Website.Utility.Solr
 
         [SolrField("html_url")]
         public string Html_Url { get; set; }
+
+        [SolrField("prog_language")]
+        public string Prog_Language { get; set; }
     }
 }

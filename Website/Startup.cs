@@ -2,7 +2,8 @@
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-
+using System.Collections.Generic;
+using System.Linq;
 using Website.Utility;
 
 namespace Website
@@ -16,11 +17,18 @@ namespace Website
 
         public IConfiguration Configuration { get; }
 
+        public static Dictionary<string, string> LanguageExtentionConfig { get; private set; }
+
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+
+            LanguageExtentionConfig =
+                Configuration.GetSection("LanguageExtentionConfig").GetChildren()
+                .Select(x => new KeyValuePair<string, string>(x.Key, x.Value))
+                .ToDictionary(y => y.Key, y => y.Value);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

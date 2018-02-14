@@ -1,4 +1,5 @@
-﻿namespace Website.Utility
+﻿
+namespace Website.Utility
 {
     public class AppSettings
     {
@@ -14,5 +15,6 @@
 
         // Website Settings
         public string WEBSITE_BASE_URL { get; set; }
+
     }
 }

@@ -2,13 +2,12 @@
 using System.Collections.Generic;
 using Website.Manager;
 using System.Linq;
-using System.Net;
 using Website.Utility.Solr;
 using SolrNet;
 using System.IO;
 using CommonServiceLocator;
 using SolrNet.Commands.Parameters;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace Website.Managers
 {
@@ -30,11 +29,12 @@ namespace Website.Managers
             return Query(query, channelId);
         }
 
-        private static String[] validExtensions = new String[] { ".cs", ".java", ".c", ".cpp", ".h", ".py", ".js" };
         public void TrackRepository(GitHubUser user, String repository)
         {
             List<CodeDoc> result = new List<CodeDoc>();
-
+            Dictionary<string, string> languageDict = new Dictionary<string, string>();
+            languageDict = Startup.LanguageExtentionConfig;
+            
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
             var repos = user.GitHubClient.Repository.GetAllForCurrent().Result;
             var repo = repos.Where(r => r.Name == repository).ToList()[0];
@@ -47,7 +47,9 @@ namespace Website.Managers
                 var associated_files = user.GitHubClient.Repository.Commit.Get(repo.Id, commit.Sha).Result;
                 foreach (var file in associated_files.Files)
                 {
-                    if (!validExtensions.Contains(Path.GetExtension(file.Filename))) continue;
+                    string ext = Path.GetExtension(file.Filename);
+
+                    if (!languageDict.ContainsKey(ext)) continue;
 
                     CodeDoc doc = new CodeDoc();
                     doc.Id = file.Sha;
@@ -64,6 +66,7 @@ namespace Website.Managers
                     doc.Patch = file.Patch;
                     doc.Repo = repo.Name;
                     doc.Html_Url = repo.HtmlUrl;
+                    doc.Prog_Language = languageDict[ext];
 
                     solr.Add(doc);
                     Console.WriteLine("Adding {0} to Solr", doc.Filename);
@@ -90,7 +93,7 @@ namespace Website.Managers
         }
 
         /// <summary>
-        /// Provide a search string and filter string this will return the top result.  
+        /// Provide a search string and filter string this will return the top 5 results.  
         /// </summary>
         /// <param name="search">the search term</param>
         /// <param name="channelId">the channel to filter by</param>
@@ -100,6 +103,11 @@ namespace Website.Managers
 
             List<ISolrQuery> filter = new List<ISolrQuery>();
             var opts = new QueryOptions();
+
+            var lang = GetLanguageRequest(search);
+
+            if (!string.IsNullOrEmpty(lang))
+                filter.Add(new SolrQueryByField("prog_lang", lang));
 
             filter.Add(new SolrQueryByField("channel", channelId));        
             foreach (var filt in filter) opts.AddFilterQueries(filt);
@@ -113,6 +121,16 @@ namespace Website.Managers
             foreach (CodeDoc doc in codeQuery) results.Add(doc);
 
             return results;
+        }
+
+        private string GetLanguageRequest(string search)
+        {
+            // capture the in "language", in group 2 
+            search += " ";
+            var inLanguage = Regex.Match(search, " (in) (.+) ").Groups;
+            var lang = inLanguage[2].ToString();
+
+            return lang;
         }
     }
 }
