@@ -180,6 +180,8 @@ namespace Processor
             if (string.IsNullOrEmpty(language)) return null;
             arguments.Add(string.Format("--language \"{0}\"", language));
 
+            arguments.Add("--position");
+
             return SrcMLRunner(BuildArgumentString(arguments));
         }
 
@@ -194,27 +196,6 @@ namespace Processor
             arguments.Add(directory);
 
             return SrcMLRunner(BuildArgumentString(arguments));
-        }
-
-        /*
-         * Filter a diff to only process additions.
-         */
-        public XDocument ProcessDiff(string filename, string diff)
-        {
-            using (StringReader reader = new StringReader(diff))
-            {
-                string line, filteredDiff = "";
-                while ((line = reader.ReadLine()) != null)
-                {
-                    if (line.StartsWith("+"))
-                    {
-                        line = line.TrimStart('+');
-                        filteredDiff += line;
-                    }
-                }
-
-                return GenerateSrcML(filename, filteredDiff);
-            }
         }
     }
 }
