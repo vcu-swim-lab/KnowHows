@@ -5,46 +5,53 @@ using System.Xml.Linq;
 using System.Collections.ObjectModel;
 using System;
 using System.ComponentModel;
+using System.Collections.Generic;
 
 namespace Processor
 {
     public class SrcML
     {
+        private static string srcMlExecutable = "srcml";
 
-        private static string srcMLExecutable = "srcml";
+        public static Dictionary<string, string> supportedExtensions = new Dictionary<string, string>
+        {
+            { ".c", "C" },
+            { ".cs", "C#" },
+            { ".cpp", "C++" },
+            { ".java", "Java" }
+        };
 
-        public SrcML()
+        private SrcML()
         {
         }
 
-        public SrcML(string customSrcMLPath)
+        private SrcML(string customSrcMLPath)
         {
-            srcMLExecutable = customSrcMLPath;
+            srcMlExecutable = customSrcMLPath;
         }
 
-        /*
-         * Initialize the Tokenizer class.
-         * Will look for SrcML (srcml) on the environment PATH.
-         */
+        /// <summary>
+        ///  Initialize the SrcML class with the default srcML executable name.
+        /// </summary>
         public static SrcML Initialize()
         {
-            if (!ExecutableExistsOnPath(srcMLExecutable)) return null;
+            if (!ExecutableExistsOnPath(srcMlExecutable)) return null;
             return new SrcML();
         }
 
-        /*
-         * Initialize the Tokenizer class.
-         * Specify a custom path for the SrcML executable.
-         */
-        public static SrcML Initialize(string customSrcMLPath)
+        /// <summary>
+        ///  Initialize the SrcML class with a custom path for the srcML executable.
+        /// </summary>
+        public static SrcML Initialize(string customSrcMlPath)
         {
-            if (!ExecutableExistsOnPath(customSrcMLPath)) return null;
-            return new SrcML(customSrcMLPath);
+            if (!ExecutableExistsOnPath(customSrcMlPath)) return SrcML.Initialize();
+            return new SrcML(customSrcMlPath);
         }
 
-        /*
-         * Check if the current execution platform is Unix.
-         */
+        /// <summary>
+        ///  Check if the current execution platform is Unix.
+        /// </summary>
+        /// <returns>True if the platform is Unix-based.</returns>
         private static bool IsUnix
         {
             get
@@ -54,9 +61,11 @@ namespace Processor
             }
         }
 
-        /*
-         * Checks for the specified executable on the PATH using where/whereis.
-         */
+        /// <summary>
+        ///  Check for the specified executable on the PATH using where/whereis.
+        /// </summary>
+        /// <param name="filename">The executable name to be checked.</params>
+        /// <returns>True if the executable is on the PATH.</returns>
         private static bool ExecutableExistsOnPath(string filename)
         {
             using (Process process = new Process())
@@ -80,18 +89,21 @@ namespace Processor
             }
         }
 
-        /*
-         * Build the argument string for the command line.
-         */
+        /// <summary>
+        ///  Build the argument string for the command line.
+        /// </summary>
+        /// <param name="arguments">The command line arguments.</param>
+        /// <returns>A string separated by whitespace.</returns>
         private string BuildArgumentString(Collection<string> arguments)
         {
             return String.Join(" ", arguments.ToArray());
         }
 
-        /*
-         * Calls srcML from the PATH with the specified arguments.
-         * Returns an XDocument with the received string.
-         */
+        /// <summary>
+        ///  Calls srcML from the PATH with the specified arguments.
+        /// </summary>
+        /// <param name="arguments">The command line arguments.</param>
+        /// <returns>The srcML parsed document.</returns>
         private XDocument SrcMLRunner(string arguments)
         {
             string output;
@@ -99,7 +111,7 @@ namespace Processor
             {
                 try
                 {
-                    process.StartInfo.FileName = srcMLExecutable;
+                    process.StartInfo.FileName = srcMlExecutable;
                     process.StartInfo.Arguments = arguments;
                     process.StartInfo.CreateNoWindow = true;
                     process.StartInfo.UseShellExecute = false;
@@ -113,83 +125,42 @@ namespace Processor
 
                 catch (Exception e)
                 {
-                    throw new Exception(String.Format("Failed to process the file/directoryt with SrcML: {0}", e.ToString()));
+                    throw new Exception(String.Format("Failed to process the file/directoryt with srcML: {0}", e.ToString()));
                 }
             }
 
+            if (String.IsNullOrEmpty(output)) return new XDocument();
             return XDocument.Parse(output);
         }
 
-        /*
-         * Determine the language from the file extension.
-         * Taken from https://github.com/github/linguist/blob/master/lib/linguist/languages.yml.
-         * Returns null on languages that cannot be parsed by srcML.
-         */
-        public static string GetLanguage(string filename)
-        {
-            var extension = Path.GetExtension(filename);
-            switch (extension)
-            {
-                case ".c":
-                case ".cats":
-                case ".idc":
-                    return "C";
-                case ".cpp":
-                case ".c++":
-                case ".cc":
-                case ".cp":
-                case ".cxx":
-                case ".h":
-                case ".h++":
-                case ".hh":
-                case ".hpp":
-                case ".hxx":
-                case ".inc":
-                case ".inl":
-                case ".ino":
-                case ".ipp":
-                case ".re":
-                case ".tcc":
-                case ".tpp":
-                    return "C++";
-                case ".java":
-                    return "Java";
-                case ".aj":
-                    return "AspectJ";
-                case ".cs":
-                case ".cake":
-                case ".cshtml":
-                case ".csx":
-                    return "C#";
-                default:
-                    return "";
-            }
-        }
-
-        /*
-         * Generate srcML document for raw input. Requires filename to determine language.
-         * Works on snippets, e.g. diffs or full files.
-         * Returns null when SrcML does not run.
-         */
-        public XDocument GenerateSrcML(string filename, string input)
+        /// <summary>
+        ///  Generate a srcML document for a file.
+        ///  Returns an empty document when SrcML does not run.
+        /// </summary>
+        /// <param name="filename">The original source filename.</param>
+        /// <param name="file">>The full path of the file to be parsed.</param>
+        /// <returns>The srcML parsed document.</returns>
+        public XDocument GenerateSrcML(string filename, string file)
         {
             var arguments = new Collection<string>();
-            arguments.Add(string.Format("--text \"{0}\"", input));
 
-            var language = GetLanguage(filename);
-            if (string.IsNullOrEmpty(language)) return null;
+            string fileExtension = Path.GetExtension(filename);
+            if (!supportedExtensions.ContainsKey(fileExtension)) return new XDocument();
+            string language = supportedExtensions[fileExtension];
             arguments.Add(string.Format("--language \"{0}\"", language));
 
             arguments.Add("--position");
+            arguments.Add(file);
 
             return SrcMLRunner(BuildArgumentString(arguments));
         }
 
-        /*
-         * Generate srcML document from directory path containing files.
-         * For use parsing full repos.
-         * Returns null when SrcML does not run.
-         */
+        /// <summary>
+        ///  Generate a srcML document from a directory path containing files.
+        ///  Returns null when SrcML does not run.
+        /// </summary>
+        /// <param name="directory">The full path to the directory.</param>
+        /// <returns>The srcML parsed document.</returns>
         public XDocument GenerateSrcML(string directory)
         {
             var arguments = new Collection<string>();
