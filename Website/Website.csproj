@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <None Remove="appsettings.Development.json.example" />
+    <None Remove="appsettings.json.example" />
   </ItemGroup>
 
   <ItemGroup>
@@ -21,6 +22,10 @@
   <ItemGroup>
     <Folder Include="Commands\Handlers\" />
     <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Processor\Processor.csproj" />
   </ItemGroup>
 
 </Project>
