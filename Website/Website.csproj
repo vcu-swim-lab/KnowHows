@@ -24,4 +24,8 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Processor\Processor.csproj" />
+  </ItemGroup>
+
 </Project>

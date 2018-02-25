@@ -8,12 +8,13 @@ using System.IO;
 using CommonServiceLocator;
 using SolrNet.Commands.Parameters;
 using System.Text.RegularExpressions;
+using Processor;
 
 namespace Website.Managers
 {
     public class SolrManager
     {
-        string connection = "http://104.131.188.205:8983/solr/#/knowhows";
+        string connection = "http://104.131.188.205:8983/solr/knowhows";
         public static SolrManager Instance = new SolrManager();
 
         private Dictionary<String, DateTime> lastFetchTimes;
@@ -33,8 +34,8 @@ namespace Website.Managers
         {
             List<CodeDoc> result = new List<CodeDoc>();
             Dictionary<string, string> languageDict = new Dictionary<string, string>();
-            languageDict = Startup.LanguageExtentionConfig;
-            
+            DiffParser parser = new DiffParser();
+
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
             var repos = user.GitHubClient.Repository.GetAllForCurrent().Result;
             var repo = repos.Where(r => r.Name == repository).ToList()[0];
@@ -48,8 +49,11 @@ namespace Website.Managers
                 foreach (var file in associated_files.Files)
                 {
                     string ext = Path.GetExtension(file.Filename);
-
-                    if (!languageDict.ContainsKey(ext)) continue;
+                    if (!SrcML.supportedExtensions.ContainsKey(ext))
+                    {
+                        Console.WriteLine("Skipping {0} ({1}): not supported by SrcML", file.Filename, file.Sha);
+                        continue;
+                    }
 
                     CodeDoc doc = new CodeDoc();
                     doc.Id = file.Sha;
@@ -60,16 +64,16 @@ namespace Website.Managers
                     doc.Committer_Name = user.UserID;
                     doc.Accesstoken = user.GitHubAccessToken;
                     doc.Filename = file.Filename;
-                    doc.Previous_File_Name = file.PreviousFileName;                        
+                    doc.Previous_File_Name = file.PreviousFileName;
                     doc.Raw_Url = file.RawUrl;
                     doc.Blob_Url = file.BlobUrl;
                     doc.Patch = file.Patch;
                     doc.Repo = repo.Name;
                     doc.Html_Url = repo.HtmlUrl;
-                    doc.Prog_Language = languageDict[ext];
+                    doc.Prog_Language = SrcML.supportedExtensions[ext];
 
                     solr.Add(doc);
-                    Console.WriteLine("Adding {0} to Solr", doc.Filename);
+                    Console.WriteLine("Adding {0} ({1}) to Solr", doc.Filename, doc.Sha);
                 }
             }
 
@@ -107,14 +111,14 @@ namespace Website.Managers
             var lang = GetLanguageRequest(search);
 
             if (!string.IsNullOrEmpty(lang))
-                filter.Add(new SolrQueryByField("prog_lang", lang));
+                filter.Add(new SolrQueryByField("prog_language", lang));
 
-            filter.Add(new SolrQueryByField("channel", channelId));        
+            filter.Add(new SolrQueryByField("channel", channelId));
             foreach (var filt in filter) opts.AddFilterQueries(filt);
             // return top 5 results
             opts.Rows = 5;
 
-            var query = new SolrQuery("text:\"" + search + "\"");
+            var query = new SolrQuery("patch:\"" + search + "\"");
             var codeQuery = solr.Query(query, opts);
 
             List<CodeDoc> results = new List<CodeDoc>();
