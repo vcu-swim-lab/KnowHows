@@ -65,7 +65,7 @@ namespace Website.Managers
                     doc.Blob_Url = file.BlobUrl;
                     doc.Patch = file.Patch;
                     doc.Repo = repo.Name;
-                    doc.Html_Url = repo.HtmlUrl;
+                    doc.Html_Url = commit.Commit.Url;
                     doc.Prog_Language = languageDict[ext];
 
                     solr.Add(doc);
@@ -107,14 +107,14 @@ namespace Website.Managers
             var lang = GetLanguageRequest(search);
 
             if (!string.IsNullOrEmpty(lang))
-                filter.Add(new SolrQueryByField("prog_lang", lang));
+                filter.Add(new SolrQueryByField("prog_language", lang));
 
             filter.Add(new SolrQueryByField("channel", channelId));        
             foreach (var filt in filter) opts.AddFilterQueries(filt);
             // return top 5 results
             opts.Rows = 5;
 
-            var query = new SolrQuery("text:\"" + search + "\"");
+            var query = new SolrQuery("patch:" + search);
             var codeQuery = solr.Query(query, opts);
 
             List<CodeDoc> results = new List<CodeDoc>();
