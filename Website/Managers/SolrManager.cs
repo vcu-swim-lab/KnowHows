@@ -9,6 +9,7 @@ using CommonServiceLocator;
 using SolrNet.Commands.Parameters;
 using System.Text.RegularExpressions;
 using Processor;
+using System.Net;
 
 namespace Website.Managers
 {
@@ -33,8 +34,6 @@ namespace Website.Managers
         public void TrackRepository(GitHubUser user, String repository)
         {
             List<CodeDoc> result = new List<CodeDoc>();
-            Dictionary<string, string> languageDict = new Dictionary<string, string>();
-            DiffParser parser = new DiffParser();
 
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
             var repos = user.GitHubClient.Repository.GetAllForCurrent().Result;
@@ -67,7 +66,7 @@ namespace Website.Managers
                     doc.Previous_File_Name = file.PreviousFileName;
                     doc.Raw_Url = file.RawUrl;
                     doc.Blob_Url = file.BlobUrl;
-                    doc.Patch = file.Patch;
+                    doc.Patch = FullyParsePatch(file.Filename, file.RawUrl, file.Patch);
                     doc.Repo = repo.Name;
                     doc.Html_Url = commit.Commit.Url;
                     doc.Prog_Language = SrcML.supportedExtensions[ext];
@@ -79,6 +78,35 @@ namespace Website.Managers
 
             solr.Commit();
             Console.WriteLine("Finished tracking repository {0} for {1} to Solr", repository, user.UUID);
+        }
+
+        private string FullyParsePatch(string fileName, string rawUrl, string patch)
+        {
+            DiffParser parser = new DiffParser();
+
+            string rawFile = GetFullRawFile(rawUrl);
+
+            var terms = parser.FindTerms(fileName, rawFile, patch);
+
+            return string.Join(' ', terms);
+
+        }
+
+        private string GetFullRawFile(string rawUrl)
+        {
+            string fullFile = "";
+            try
+            {
+                using (WebClient cl = new WebClient())
+                {
+                    fullFile = cl.DownloadString(rawUrl);
+                }
+            }
+            catch (WebException ex)
+            {
+                Console.WriteLine("Something happened downloading full file: " + ex);
+            }
+            return fullFile;
         }
 
         /// <summary>
