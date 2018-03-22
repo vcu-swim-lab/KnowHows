@@ -103,15 +103,15 @@ namespace Website.Manager
 
         private static UserManager Load()
         {
-            if (File.Exists("./users.json")) {
-                return JsonConvert.DeserializeObject<UserManager>(File.ReadAllText("./users.json"));
+            if (File.Exists("./data/users.json")) {
+                return JsonConvert.DeserializeObject<UserManager>(File.ReadAllText("./data/users.json"));
             }
-            else return null;
+            else return new UserManager();
         }
 
         private void Save()
         {
-            File.WriteAllText("./users.json", JsonConvert.SerializeObject(this));
+            File.WriteAllText("./data/users.json", JsonConvert.SerializeObject(this));
             Console.WriteLine("Performing save of current user manager at {0}", DateTime.Now);
 
             // Reoccuring save
