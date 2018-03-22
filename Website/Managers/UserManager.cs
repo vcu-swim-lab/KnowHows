@@ -103,10 +103,10 @@ namespace Website.Manager
 
         private static UserManager Load()
         {
-            if (File.Exists("./users.json")) {
-                return JsonConvert.DeserializeObject<UserManager>(File.ReadAllText("./users.json"));
+            if (File.Exists("./data/users.json")) {
+                return JsonConvert.DeserializeObject<UserManager>(File.ReadAllText("./data/users.json"));
             }
-            else return null;
+            else return new UserManager();
         }
 
         private void Save()
