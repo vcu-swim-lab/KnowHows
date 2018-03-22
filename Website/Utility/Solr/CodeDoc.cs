@@ -52,5 +52,8 @@ namespace Website.Utility.Solr
 
         [SolrField("prog_language")]
         public string Prog_Language { get; set; }
+
+        [SolrField("commit_message")]
+        public string Message { get; set; }
     }
 }

@@ -69,6 +69,7 @@ namespace Website.Managers
                     doc.Patch = FullyParsePatch(file.Filename, file.RawUrl, file.Patch);
                     doc.Repo = repo.Name;
                     doc.Html_Url = commit.Commit.Url;
+                    doc.Message = commit.Commit.Message;
                     doc.Prog_Language = SrcML.supportedExtensions[ext];
 
                     solr.Add(doc);
@@ -146,7 +147,7 @@ namespace Website.Managers
             // return top 5 results
             opts.Rows = 5;
 
-            var query = new SolrQuery("patch:\"" + search + "\"");
+            var query = new SolrQuery("patch:" + search);
             var codeQuery = solr.Query(query, opts);
 
             List<CodeDoc> results = new List<CodeDoc>();
