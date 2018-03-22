@@ -111,7 +111,7 @@ namespace Website.Manager
 
         private void Save()
         {
-            File.WriteAllText("./users.json", JsonConvert.SerializeObject(this));
+            File.WriteAllText("./data/users.json", JsonConvert.SerializeObject(this));
             Console.WriteLine("Performing save of current user manager at {0}", DateTime.Now);
 
             // Reoccuring save
