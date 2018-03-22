@@ -1,7 +1,10 @@
-﻿using Octokit;
+﻿using Newtonsoft.Json;
+using Octokit;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Website.Managers;
 
@@ -93,12 +96,32 @@ namespace Website.Manager
 
     public class UserManager
     {
-        public static UserManager Instance = new UserManager();
-  
+        public static UserManager Instance = Load();
+
         private HashSet<String> pendingUsers = new HashSet<string>();
         private Dictionary<String, GitHubUser> githubUsers = new Dictionary<string, GitHubUser>();
 
-        private UserManager() { }
+        private static UserManager Load()
+        {
+            if (File.Exists("./users.json")) {
+                return JsonConvert.DeserializeObject<UserManager>(File.ReadAllText("./users.json"));
+            }
+            else return null;
+        }
+
+        private void Save()
+        {
+            File.WriteAllText("./users.json", JsonConvert.SerializeObject(this));
+            Console.WriteLine("Performing save of current user manager at {0}", DateTime.Now);
+
+            // Reoccuring save
+            Task.Run( () => {
+                Thread.Sleep(1000 * 60 * 5); // every 5 minutes
+                Save();
+            });
+        }
+
+        private UserManager() { Save(); }
 
         public bool IsGitHubAuthenticated(string uuid)
         {
