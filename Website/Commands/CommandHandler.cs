@@ -20,16 +20,55 @@ namespace Website.Commands
                     case "track":   return HandleTrack(user, command);
                     case "untrack": return HandleUntrack(user, command);
                     case "help":    return HandleHelp(user, command);
+                    case "to":      return HandleNaturalLanguageSearch(user, command);
                 }
                 return HandleHelp(user, command);
             }
             catch (Exception ex) { return new CommandResponse(String.Format("*Error:* {0}", ex.ToString())); }       
         }
 
+        private static CommandResponse HandleNaturalLanguageSearch(GitHubUser user, Command command)
+        {
+            string query = ObtainQuery(command.text);
+
+            var results = SolrManager.Instance.PerformNLPQuery(query, user.ChannelID);
+
+            StringBuilder sb = new StringBuilder();
+
+            if (results.Count == 0) sb.AppendLine("*No results found*");
+            else
+            {
+                sb.AppendLine(String.Format("Found *{0}* results...", results.Count));
+
+                // should always be a max of 5 results, set in Solr Query
+                for (int i = 0; i < results.Count; i++)
+                {
+                    var result = results[i];
+                    // dont return results from questioner
+                    if (result.Committer_Name == user.UserID)
+                        continue;
+
+                    sb.AppendLine(String.Format("• *<@{0}>* made changes to *{1}* on *{2}* (*{3}*). ",
+                        result.Committer_Name,
+                        result.Filename,
+                        result.Author_Date.ToShortDateString(),
+                        result.Html_Url));
+                }
+            }
+            return new CommandResponse(sb.ToString());
+        }
+
+        private static string ObtainQuery(string text)
+        {
+            string action = text.Split(' ')[0];
+
+            return text.Substring(text.IndexOf(action) + (action.Length + 1));
+        }
+
         private static CommandResponse HandleSearch(GitHubUser user, Command command)
         {
-            string text = command.text, action = text.Split(' ')[0];
-            string query = command.text.Substring(text.IndexOf(action) + (action.Length + 1));
+
+            string query = ObtainQuery(command.text);
             var results = SolrManager.Instance.PerformQuery(query, user.ChannelID);
 
             StringBuilder sb = new StringBuilder();
@@ -103,7 +142,8 @@ namespace Website.Commands
             // shouldnt be hard coding this stuff here
             sb.AppendLine("*Available commands:* ");
 
-            sb.AppendLine("/knowhows search <query> -- perform a code query search");
+            sb.AppendLine("/knowhows to <query> -- performs a natural language search");
+            sb.AppendLine("/knowhows search <query> -- performs search for explicit request");
             sb.AppendLine("/knowhows track <repository name> -- tracks and indexes one of your repositories");
             sb.AppendLine("/knowhows untrack <repository name> -- untracks and unindexes one of your repositories");
             sb.AppendLine("/knowhows help -- shows this help message");

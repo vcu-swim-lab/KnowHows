@@ -26,9 +26,14 @@ namespace Website.Managers
             this.lastFetchTimes = new Dictionary<String, DateTime>();
         }
 
+        public List<CodeDoc> PerformNLPQuery(String query, String channelId)
+        {
+            return NaturalLangQuery(query, channelId);
+        }
+
         public List<CodeDoc> PerformQuery(String query, String channelId)
         {
-            return Query(query, channelId);
+            return BasicQuery(query, channelId);
         }
 
         public void TrackRepository(GitHubUser user, String repository)
@@ -54,6 +59,8 @@ namespace Website.Managers
                         continue;
                     }
 
+                    string parsedPatch = FullyParsePatch(file.Filename, file.RawUrl, file.Patch);
+
                     CodeDoc doc = new CodeDoc();
                     doc.Id = file.Sha;
                     doc.Sha = file.Sha;
@@ -66,7 +73,8 @@ namespace Website.Managers
                     doc.Previous_File_Name = file.PreviousFileName;
                     doc.Raw_Url = file.RawUrl;
                     doc.Blob_Url = file.BlobUrl;
-                    doc.Patch = FullyParsePatch(file.Filename, file.RawUrl, file.Patch);
+                    doc.Unindexed_Patch = parsedPatch;
+                    doc.Patch = parsedPatch;
                     doc.Repo = repo.Name;
                     doc.Html_Url = commit.Commit.Url;
                     doc.Message = commit.Commit.Message;
@@ -126,11 +134,12 @@ namespace Website.Managers
         }
 
         /// <summary>
-        /// Provide a search string and filter string this will return the top 5 results.  
+        /// Queries Solr and looks for exact matches 
         /// </summary>
-        /// <param name="search">the search term</param>
-        /// <param name="channelId">the channel to filter by</param>
-        public List<CodeDoc> Query(string search, string channelId)
+        /// <param name="search"></param>
+        /// <param name="channelId"></param>
+        /// <returns></returns>
+        private List<CodeDoc> BasicQuery(string search, string channelId)
         {
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
 
@@ -147,7 +156,41 @@ namespace Website.Managers
             // return top 5 results
             opts.Rows = 5;
 
-            var query = new SolrQuery("patch:" + search);
+            var query = new LocalParams { { "type", "boost" }, { "b", "recip(ms(NOW,author_date),3.16e-11,-1,1)" } } + new SolrQuery("unindexed_patch:\"" + search + "\"");
+            var codeQuery = solr.Query(query, opts);
+
+            List<CodeDoc> results = new List<CodeDoc>();
+            foreach (CodeDoc doc in codeQuery) results.Add(doc);
+
+            return results;
+        }
+
+        /// <summary>
+        /// Provide a search string and filter string this will return the top 5 results.  
+        /// </summary>
+        /// <param name="search">the search term</param>
+        /// <param name="channelId">the channel to filter by</param>
+        public List<CodeDoc> NaturalLangQuery(string search, string channelId)
+        {
+            // there is some duplication, should be cleaned up 
+            ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
+
+            List<ISolrQuery> filter = new List<ISolrQuery>();
+            var opts = new QueryOptions();
+
+            var lang = GetLanguageRequest(search);
+
+            if (!string.IsNullOrEmpty(lang))
+                filter.Add(new SolrQueryByField("prog_language", lang));
+
+
+            filter.Add(new SolrQueryByField("channel", channelId));
+            foreach (var filt in filter) opts.AddFilterQueries(filt);
+            
+            // return top 5 results
+            opts.Rows = 5;
+
+            var query = new LocalParams { { "type", "boost" }, { "b", "recip(ms(NOW,author_date),3.16e-11,-1,1)" } } + (new SolrQueryByField("patch",  search) || new SolrQueryByField("message", search));
             var codeQuery = solr.Query(query, opts);
 
             List<CodeDoc> results = new List<CodeDoc>();

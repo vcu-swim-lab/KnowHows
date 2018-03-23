@@ -41,6 +41,9 @@ namespace Website.Utility.Solr
         [SolrField("patch")]
         public string Patch { get; set; }
 
+        [SolrField("unindexed_patch")]
+        public string Unindexed_Patch { get; set; }
+
         [SolrField("channel")]
         public string Channel { get; set; }
 
