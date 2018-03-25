@@ -11,7 +11,7 @@ namespace Processor
     {
 
         private static SrcML srcml = SrcML.Initialize();
-        private XNamespace position = "http://www.srcML.org/srcML/position", rootNs = "http://www.srcML.org/srcML/src";
+        private XNamespace position = "http://www.srcML.org/srcML/position", rootNs = "http://www.srcML.org/srcML/src", cpp = "http://www.srcML.org/srcML/cpp";
 
         /// <summary>
         /// Regex for parsing hunk block headers.
@@ -57,27 +57,55 @@ namespace Processor
         /// <param name="filename">The filename of fullFile.</param>
         /// <param name="fullFile">The fullFile read as a string.</param>
         /// <param name="unifiedDiff">The unifiedDiff read as a string.</param>
-        /// <returns>A list of added terms that are declarative statements.</returns>
+        /// <returns>A list of added terms.</returns>
         public List<string> FindTerms(string filename, string fullFile, string unifiedDiff)
         {
-            // @TODO: Destroy temp files on completion
+            // @TODO: Correlate object expressions with variable type (e.g. s1.hasToken() => StringTokenizer)
+
             string tempFile = Path.GetTempFileName();
-            File.WriteAllText(tempFile, fullFile.ToString());
+            File.WriteAllText(tempFile, fullFile);
             XDocument parsedFile = srcml.GenerateSrcML(filename, tempFile);
 
             string[] diffLineArray = StringToLineArray(unifiedDiff);
             List<int> changedLineNumbers = ParseUnifiedDiff(diffLineArray);
             List<string> allTerms = new List<string>();
 
+            IEnumerable<XElement> classNodes = parsedFile.Descendants(rootNs + "class").Elements(rootNs + "name");
+            IEnumerable<XElement> declarativeNodes = parsedFile.Descendants(rootNs + "decl_stmt").Descendants(rootNs + "type").Descendants();
+            IEnumerable<XElement> expressionNodes = parsedFile.Descendants(rootNs + "expr").Descendants(rootNs + "call").Elements(rootNs + "name");
+            IEnumerable<XElement> importNodes = parsedFile.Descendants(rootNs + "import").Union(parsedFile.Descendants(rootNs + "using"));
+            IEnumerable<XElement> cImportNodes = parsedFile.Descendants(cpp + "file");
+
             foreach (int line in changedLineNumbers)
             {
-                IEnumerable<string> lineTerms = parsedFile.Descendants(rootNs + "decl_stmt").Descendants()
+                IEnumerable<string> classTerms = classNodes
                                                 .Where(element => element.Name.Equals(rootNs + "name") && element.Attribute(position + "line") != null && (int)element.Attribute(position + "line") == line)
                                                 .Select(element => element.Value);
 
-                allTerms.AddRange(lineTerms);
+                IEnumerable<string> declarativeTerms = declarativeNodes
+                                                .Where(element => element.Name.Equals(rootNs + "name") && element.Attribute(position + "line") != null && (int)element.Attribute(position + "line") == line)
+                                                .Select(element => element.Value);
+
+                IEnumerable<string> expressionTerms = expressionNodes
+                                               .Where(element => element.Attribute(position + "line") != null && (int)element.Attribute(position + "line") == line)
+                                               .Select(element => element.Value);
+
+                IEnumerable<string> importTerms = importNodes
+                                               .Where(element => element.Attribute(position + "line") != null && (int)element.Attribute(position + "line") == line && element.Element(rootNs + "name") != null)
+                                               .Select(element => element.Element(rootNs + "name").Value);
+
+                IEnumerable<string> cImportTerms = cImportNodes
+                                               .Where(element => element.Attribute(position + "line") != null && (int)element.Attribute(position + "line") == line)
+                                               .Select(element => element.Value);
+
+                allTerms.AddRange(classTerms);
+                allTerms.AddRange(declarativeTerms);
+                allTerms.AddRange(expressionTerms);
+                allTerms.AddRange(importTerms);
+                allTerms.AddRange(cImportTerms);
             }
 
+            File.Delete(tempFile);
             return allTerms;
         }
 
