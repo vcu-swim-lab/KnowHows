@@ -9,9 +9,8 @@ namespace Processor
 {
     public class DiffParser
     {
-
         private static SrcML srcml = SrcML.Initialize();
-        private XNamespace position = "http://www.srcML.org/srcML/position", rootNs = "http://www.srcML.org/srcML/src", cpp = "http://www.srcML.org/srcML/cpp";
+        private XNamespace positionNs = "http://www.srcML.org/srcML/position", rootNs = "http://www.srcML.org/srcML/src", cppNs = "http://www.srcML.org/srcML/cpp";
 
         /// <summary>
         /// Regex for parsing hunk block headers.
@@ -61,7 +60,6 @@ namespace Processor
         public List<string> FindTerms(string filename, string fullFile, string unifiedDiff)
         {
             // @TODO: Correlate object expressions with variable type (e.g. s1.hasToken() => StringTokenizer)
-
             string tempFile = Path.GetTempFileName();
             File.WriteAllText(tempFile, fullFile);
             XDocument parsedFile = srcml.GenerateSrcML(filename, tempFile);
@@ -74,28 +72,28 @@ namespace Processor
             IEnumerable<XElement> declarativeNodes = parsedFile.Descendants(rootNs + "decl_stmt").Descendants(rootNs + "type").Descendants();
             IEnumerable<XElement> expressionNodes = parsedFile.Descendants(rootNs + "expr").Descendants(rootNs + "call").Elements(rootNs + "name");
             IEnumerable<XElement> importNodes = parsedFile.Descendants(rootNs + "import").Union(parsedFile.Descendants(rootNs + "using"));
-            IEnumerable<XElement> cImportNodes = parsedFile.Descendants(cpp + "file");
+            IEnumerable<XElement> cImportNodes = parsedFile.Descendants(cppNs + "file");
 
             foreach (int line in changedLineNumbers)
             {
                 IEnumerable<string> classTerms = classNodes
-                                                .Where(element => element.Name.Equals(rootNs + "name") && element.Attribute(position + "line") != null && (int)element.Attribute(position + "line") == line)
+                                                .Where(element => element.Name.Equals(rootNs + "name") && element.Attribute(positionNs + "line") != null && (int)element.Attribute(positionNs + "line") == line)
                                                 .Select(element => element.Value);
 
                 IEnumerable<string> declarativeTerms = declarativeNodes
-                                                .Where(element => element.Name.Equals(rootNs + "name") && element.Attribute(position + "line") != null && (int)element.Attribute(position + "line") == line)
+                                                .Where(element => element.Name.Equals(rootNs + "name") && element.Attribute(positionNs + "line") != null && (int)element.Attribute(positionNs + "line") == line)
                                                 .Select(element => element.Value);
 
                 IEnumerable<string> expressionTerms = expressionNodes
-                                               .Where(element => element.Attribute(position + "line") != null && (int)element.Attribute(position + "line") == line)
+                                               .Where(element => element.Attribute(positionNs + "line") != null && (int)element.Attribute(positionNs + "line") == line)
                                                .Select(element => element.Value);
 
                 IEnumerable<string> importTerms = importNodes
-                                               .Where(element => element.Attribute(position + "line") != null && (int)element.Attribute(position + "line") == line && element.Element(rootNs + "name") != null)
+                                               .Where(element => element.Attribute(positionNs + "line") != null && (int)element.Attribute(positionNs + "line") == line && element.Element(rootNs + "name") != null)
                                                .Select(element => element.Element(rootNs + "name").Value);
 
                 IEnumerable<string> cImportTerms = cImportNodes
-                                               .Where(element => element.Attribute(position + "line") != null && (int)element.Attribute(position + "line") == line)
+                                               .Where(element => element.Attribute(positionNs + "line") != null && (int)element.Attribute(positionNs + "line") == line)
                                                .Select(element => element.Value);
 
                 allTerms.AddRange(classTerms);
@@ -105,7 +103,16 @@ namespace Processor
                 allTerms.AddRange(cImportTerms);
             }
 
+            // Remove stopwords of the file language from all collected terms
+            string fileExtension = Path.GetExtension(filename);
+            if (Stopwords.stopwordLists.ContainsKey(fileExtension))
+            {
+                IList<string> languageStopwords = Stopwords.stopwordLists[fileExtension];
+                allTerms.RemoveAll(i => languageStopwords.Contains(i, StringComparer.CurrentCultureIgnoreCase));
+            };
+
             File.Delete(tempFile);
+
             return allTerms;
         }
 
