@@ -166,3 +166,7 @@ $RECYCLE.BIN/
 # =========================
 Website/**/appsettings.json
 Website/**/appsettings.Development.json
+
+data
+data/**
+
