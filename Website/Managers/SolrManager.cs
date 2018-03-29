@@ -187,10 +187,10 @@ namespace Website.Managers
             filter.Add(new SolrQueryByField("channel", channelId));
             foreach (var filt in filter) opts.AddFilterQueries(filt);
             
-            // return top 5 results
+            // return top 5 results 
             opts.Rows = 5;
 
-            var query = new LocalParams { { "type", "boost" }, { "b", "recip(ms(NOW,author_date),3.16e-11,-1,1)" } } + (new SolrQueryByField("patch",  search) || new SolrQueryByField("message", search));
+            var query = new LocalParams { { "type", "boost" }, { "b", "recip(ms(NOW,author_date),3.16e-11,-1,1)" } } + (new SolrQuery("patch:"+  search) || new SolrQuery("message:" + search));
             var codeQuery = solr.Query(query, opts);
 
             List<CodeDoc> results = new List<CodeDoc>();
