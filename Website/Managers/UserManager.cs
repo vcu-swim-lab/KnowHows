@@ -12,33 +12,44 @@ namespace Website.Manager
 {
     public class GitHubUser
     {
-        public string TeamID, ChannelID, UserID;
+        public String TeamID, ChannelID, UserID;
 
-        private GitHubClient _client;
-        private string _gitHubAccessToken;
+        private String _gitHubAccessToken;
+
+        [JsonProperty(PropertyName = "Repositories")]
         private List<String> _repositories;
+
+        [JsonProperty(PropertyName = "TrackedRepositories")]
         private List<String> _trackedRepositories;
 
+        [JsonIgnore]
+        private GitHubClient _client;
+
+        [JsonIgnore]
         public GitHubClient GitHubClient
         {
             get { return _client; }
         }
 
+        [JsonIgnore]
         public String UUID
         {
             get { return String.Format("{0}.{1}.{2}", TeamID, ChannelID, UserID); }
         }
 
+        [JsonIgnore]
         public IReadOnlyCollection<String> Repositories
         {
             get { return _repositories.AsReadOnly(); }
         }
 
+        [JsonIgnore]
         public IReadOnlyCollection<String> TrackedRepositories
         {
             get { return _trackedRepositories.AsReadOnly(); }
         }
 
+        [JsonIgnore]
         public IReadOnlyCollection<String> UntrackedRepositories
         {
             get { return Repositories.Except(TrackedRepositories).ToList().AsReadOnly(); }
@@ -50,6 +61,11 @@ namespace Website.Manager
             set
             {
                 _gitHubAccessToken = value;
+
+                if (_client == null) {
+                    _client = new GitHubClient(new ProductHeaderValue(UserID));
+                }
+
                 _client.Credentials = new Credentials(_gitHubAccessToken);
                 UpdateRepositoryIndex();
             }
@@ -68,7 +84,6 @@ namespace Website.Manager
         private void UpdateRepositoryIndex()
         {
             _repositories.Clear();
-            _trackedRepositories.Clear();
             var repos = _client.Repository.GetAllForCurrent().Result;
             foreach (var repo in repos) _repositories.Add(repo.Name);
         }
@@ -96,37 +111,37 @@ namespace Website.Manager
 
     public class UserManager
     {
-        public static UserManager Instance = Load();
+        public static UserManager Instance = new UserManager();
 
         private HashSet<String> pendingUsers = new HashSet<string>();
-        private Dictionary<String, GitHubUser> githubUsers = new Dictionary<string, GitHubUser>();
+        private Dictionary<String, GitHubUser> githubUsers;
 
-        private static UserManager Load()
+        private static Dictionary<String, GitHubUser> Load()
         {
             try
             {
                 if (File.Exists("./data/users.json"))
                 {
-                    return JsonConvert.DeserializeObject<UserManager>(File.ReadAllText("./data/users.json"));
+                    return JsonConvert.DeserializeObject<Dictionary<String, GitHubUser>>(File.ReadAllText("./data/users.json"));
                 }
             }
             catch (Exception ex) { Console.WriteLine(ex); }
-            return new UserManager();
+            return new Dictionary<String, GitHubUser>();
         }
 
-        private void Save()
+        private void save()
         {
-            File.WriteAllText("./data/users.json", JsonConvert.SerializeObject(this));
+            File.WriteAllText("./data/users.json", JsonConvert.SerializeObject(githubUsers));
             Console.WriteLine("Performing save of current user manager at {0}", DateTime.Now);
 
             // Reoccuring save
-            Task.Run( () => {
-                Thread.Sleep(1000 * 60 * 5); // every 5 minutes
-                Save();
+            Task.Run(() => {
+                Thread.Sleep(1000 * 60); // every 60 seconds
+                save();
             });
         }
 
-        private UserManager() { Save(); }
+        private UserManager() { githubUsers = Load(); save(); }
 
         public bool IsGitHubAuthenticated(string uuid)
         {
