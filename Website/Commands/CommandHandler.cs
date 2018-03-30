@@ -38,7 +38,10 @@ namespace Website.Commands
             if (results.Count == 0) sb.AppendLine("*No results found*");
             else
             {
-                sb.AppendLine(String.Format("Found *{0}* results...", results.Count));
+                if (results.Count == 1)
+                    sb.AppendLine(String.Format("Found *{0}* result...", results.Count));
+                else
+                    sb.AppendLine(String.Format("Found *{0}* results...", results.Count));
 
                 // should always be a max of 5 results, set in Solr Query
                 for (int i = 0; i < results.Count; i++)
@@ -48,7 +51,7 @@ namespace Website.Commands
                     if (result.Committer_Name == user.UserID)
                         continue;
 
-                    sb.AppendLine(String.Format("• *<@{0}>* made changes to *{1}* on *{2}* (*{3}*). ",
+                    sb.AppendLine(String.Format("• *<@{0}>* made changes to *{1}* on *{2}* ({3}). ",
                         result.Committer_Name,
                         result.Filename,
                         result.Author_Date.ToShortDateString(),
@@ -76,8 +79,10 @@ namespace Website.Commands
             if (results.Count == 0) sb.AppendLine("*No results found*");
             else
             {
-                sb.AppendLine(String.Format("Found *{0}* results...", results.Count));
-
+                if (results.Count == 1)
+                    sb.AppendLine(String.Format("Found *{0}* result...", results.Count));
+                else
+                    sb.AppendLine(String.Format("Found *{0}* results...", results.Count));
                 // should always be a max of 5 results, set in Solr Query
                 for (int i = 0; i < results.Count; i++)
                 {
@@ -86,7 +91,7 @@ namespace Website.Commands
                     if (result.Committer_Name == user.UserID)
                         continue;
 
-                    sb.AppendLine(String.Format("• *<@{0}>* made changes to *{1}* on *{2}* (*{3}*). ",
+                    sb.AppendLine(String.Format("• *<@{0}>* made changes to *{1}* on *{2}* ({3}). ",
                         result.Committer_Name,
                         result.Filename,
                         result.Author_Date.ToShortDateString(),
