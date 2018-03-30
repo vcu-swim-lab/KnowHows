@@ -51,7 +51,7 @@ namespace Website.Commands
                     if (result.Committer_Name == user.UserID)
                         continue;
 
-                    sb.AppendLine(String.Format("• *<@{0}>* made changes to *{1}* on *{2}* ({3}). ",
+                    sb.AppendLine(String.Format("• *<@{0}>* made changes to <{3}|*{1}*> on *{2}*. ",
                         result.Committer_Name,
                         result.Filename,
                         result.Author_Date.ToShortDateString(),
@@ -91,7 +91,7 @@ namespace Website.Commands
                     if (result.Committer_Name == user.UserID)
                         continue;
 
-                    sb.AppendLine(String.Format("• *<@{0}>* made changes to *{1}* on *{2}* ({3}). ",
+                    sb.AppendLine(String.Format("• *<@{0}>* made changes to <{3}|*{1}*> on *{2}*. ",
                         result.Committer_Name,
                         result.Filename,
                         result.Author_Date.ToShortDateString(),

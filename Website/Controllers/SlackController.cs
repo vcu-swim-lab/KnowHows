@@ -110,12 +110,9 @@ namespace Website.Controllers
             {
                 return new CommandResponse(String.Format
                 (
-                    "{\"text\":"+
-                    "It looks like you haven't authorized us as a GitHub app in this channel! " +
-                    "Please visit <{0}/api/github/getoauthurl?uuid={1}|this> URL to get set up",
+                    "It looks like you haven't authorized us as a GitHub app in this channel! Please visit <{0}/api/github/getoauthurl?uuid={1}|this URL> to get set up",
                     _options.WEBSITE_BASE_URL,
                     uuid
-                    + "}"
                 ));
             }    
         }
