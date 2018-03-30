@@ -124,6 +124,10 @@ namespace Website.Manager
                 {
                     return JsonConvert.DeserializeObject<Dictionary<String, GitHubUser>>(File.ReadAllText("./data/users.json"));
                 }
+		else {
+		    Directory.CreateDirectory("./data");
+		    File.Create("./data/users.json").Close();
+		}
             }
             catch (Exception ex) { Console.WriteLine(ex); }
             return new Dictionary<String, GitHubUser>();
