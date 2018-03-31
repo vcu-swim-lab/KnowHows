@@ -39,9 +39,9 @@ namespace Website.Commands
             else
             {
                 if (results.Count == 1)
-                    sb.AppendLine(String.Format("Found *{0}* result...", results.Count));
+                    sb.AppendLine(String.Format("Found *{0}* result for *{1}*:", results.Count, query));
                 else
-                    sb.AppendLine(String.Format("Found *{0}* results...", results.Count));
+                    sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
 
                 // should always be a max of 5 results, set in Solr Query
                 for (int i = 0; i < results.Count; i++)
@@ -80,9 +80,9 @@ namespace Website.Commands
             else
             {
                 if (results.Count == 1)
-                    sb.AppendLine(String.Format("Found *{0}* result...", results.Count));
+                    sb.AppendLine(String.Format("Found *{0}* result for *{1}*:", results.Count, query));
                 else
-                    sb.AppendLine(String.Format("Found *{0}* results...", results.Count));
+                    sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
                 // should always be a max of 5 results, set in Solr Query
                 for (int i = 0; i < results.Count; i++)
                 {
@@ -147,11 +147,11 @@ namespace Website.Commands
             // shouldnt be hard coding this stuff here
             sb.AppendLine("*Available commands:* ");
 
-            sb.AppendLine("/knowhows to <query> -- performs a natural language search");
-            sb.AppendLine("/knowhows search <query> -- performs search for explicit request");
-            sb.AppendLine("/knowhows track <repository name> -- tracks and indexes one of your repositories");
-            sb.AppendLine("/knowhows untrack <repository name> -- untracks and unindexes one of your repositories");
-            sb.AppendLine("/knowhows help -- shows this help message");
+            sb.AppendLine("_/knowhows to <query>_ -- performs a natural language search");
+            sb.AppendLine("_/knowhows search <query>_ -- performs search for explicit request");
+            sb.AppendLine("_/knowhows track <repository name>_ -- tracks and indexes one of your repositories");
+            sb.AppendLine("_/knowhows untrack <repository name>_ -- untracks and unindexes one of your repositories");
+            sb.AppendLine("_/knowhows help_ -- shows this help message");
 
             return new CommandResponse(sb.ToString());
         }
