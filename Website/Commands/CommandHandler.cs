@@ -48,8 +48,8 @@ namespace Website.Commands
                 {
                     var result = results[i];
                     // dont return results from questioner
-                    if (result.Committer_Name == user.UserID)
-                        continue;
+                    // if (result.Committer_Name == user.UserID)
+                    //     continue;
 
                     sb.AppendLine(String.Format("• *<@{0}>* made changes to <{3}|*{1}*> on *{2}*. ",
                         result.Committer_Name,
@@ -88,8 +88,8 @@ namespace Website.Commands
                 {
                     var result = results[i];
                     // dont return results from questioner
-                    if (result.Committer_Name == user.UserID)
-                        continue;
+                    // if (result.Committer_Name == user.UserID)
+                    //    continue;
 
                     sb.AppendLine(String.Format("• *<@{0}>* made changes to <{3}|*{1}*> on *{2}*. ",
                         result.Committer_Name,

@@ -85,7 +85,7 @@ namespace Website.Managers
                     doc.Unindexed_Patch = parsedPatch;
                     doc.Patch = parsedPatch;
                     doc.Repo = repo.Name;
-                    doc.Html_Url = commit.Commit.Url;
+                    doc.Html_Url = commit.HtmlUrl;
                     doc.Message = commit.Commit.Message;
                     doc.Prog_Language = SrcML.supportedExtensions[ext];
 
