@@ -59,7 +59,16 @@ namespace Website.Managers
                         continue;
                     }
 
+                    if (file.Additions == 0 || String.Equals(file.Status, "removed")) {
+                        Console.WriteLine("Skipping {0} ({1}): file was deleted", file.Filename, file.Sha);
+                        continue;
+                    }
+
                     string parsedPatch = FullyParsePatch(file.Filename, file.RawUrl, file.Patch);
+                    if (String.IsNullOrEmpty(parsedPatch)) {
+                        Console.WriteLine("Discarding {0} ({1}): no relevant terms found in parsed patch", file.Filename, file.Sha);
+                        continue;
+                    }
 
                     CodeDoc doc = new CodeDoc();
                     doc.Id = file.Sha;
