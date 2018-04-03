@@ -365,6 +365,9 @@ ul { margin: 0 0 10px 30px; }
 }
 
 .input_box {
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
     padding: 0 55px 0 55px;
     min-height: 41px;
     line-height: 15px;
@@ -372,10 +375,6 @@ ul { margin: 0 0 10px 30px; }
 
 .input {
     display: inline-block;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    width: 100%;
     padding-top: 11px;
     padding-bottom: 11px;
     line-height: 15px;
@@ -408,13 +407,19 @@ ul { margin: 0 0 10px 30px; }
 }
 
 .message_sender {
+    flex: none;
     display: inline;
     margin-left: -8px;
     color: #2c2d30;
     font-weight: 900;
 }
 
+.message_sender_name {
+    display: inline;
+}
+
 .app_label {
+    display: inline;
     border-radius: 2px;
     font-size: 10px;
     padding: 1px 3px;
@@ -422,7 +427,31 @@ ul { margin: 0 0 10px 30px; }
     background-color: #e8e8e8;
     line-height: 1.25;
     font-weight: 700;
-    vertical-align: .125rem;
+    vertical-align: .1rem;
+}
+
+.message_attachment {
+    display: flex;
+    align-items: stretch;
+    position: relative;
+    margin: 0 0 8px -20px;
+    padding-left: 20px;
+    color: #2c2d30;
+}
+
+.message_attachment_border {
+    flex-shrink: 0;
+    width: 4px;
+    border-radius: 8px;
+}
+
+.message_attachment_body {
+    line-height: 1.15;
+    font-size: 15px;
+    flex: 1;
+    padding: 0 12px;
+    overflow: hidden;
+    word-wrap: break-word;
 }
 
 .mention {
@@ -451,12 +480,14 @@ ul { margin: 0 0 10px 30px; }
 }
 
 @media only screen and (max-width: 650px)  {
-    .content { align-items: center; }
-    .footer_container { position: relative; }
+    .sidebar { display: inline; }
     .flex_row { flex-direction: column; }
     .features { align-items: center; }
-    .feature { border-right: 0; width: 85%; }
-    .app { width: 100%; order: 2; }
-    .main { flex-grow: 0; width: 100%; }
+    .feature { border-right: 0; width: 85%; flex-direction: row; }
+    .app { flex-grow: 0; width: 100%; order: 2; }
     .description { width: 100%; order: 1; }
+}
+
+@media only screen and (max-width: 500px)  {
+    .sidebar { display: none; }
 }
