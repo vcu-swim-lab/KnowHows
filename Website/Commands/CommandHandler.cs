@@ -40,17 +40,17 @@ namespace Website.Commands
             else
             {
                 if (results.Count == 1)
-                    sb.AppendLine(String.Format("Found *{0}* result...", results.Count));
+                    sb.AppendLine(String.Format("Found *{0}* result for *{1}*:", results.Count, query));
                 else
-                    sb.AppendLine(String.Format("Found *{0}* results...", results.Count));
+                    sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
 
                 // should always be a max of 5 results, set in Solr Query
                 for (int i = 0; i < results.Count; i++)
                 {
                     var result = results[i];
                     // dont return results from questioner
-                    if (result.Committer_Name == user.UserID)
-                        continue;
+                    // if (result.Committer_Name == user.UserID)
+                    //     continue;
 
                     sb.AppendLine(String.Format("• *<@{0}>* made changes to <{3}|*{1}*> on *{2}*. ",
                         result.Committer_Name,
@@ -81,16 +81,16 @@ namespace Website.Commands
             else
             {
                 if (results.Count == 1)
-                    sb.AppendLine(String.Format("Found *{0}* result...", results.Count));
+                    sb.AppendLine(String.Format("Found *{0}* result for *{1}*:", results.Count, query));
                 else
-                    sb.AppendLine(String.Format("Found *{0}* results...", results.Count));
+                    sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
                 // should always be a max of 5 results, set in Solr Query
                 for (int i = 0; i < results.Count; i++)
                 {
                     var result = results[i];
                     // dont return results from questioner
-                    if (result.Committer_Name == user.UserID)
-                        continue;
+                    // if (result.Committer_Name == user.UserID)
+                    //    continue;
 
                     sb.AppendLine(String.Format("• *<@{0}>* made changes to <{3}|*{1}*> on *{2}*. ",
                         result.Committer_Name,
@@ -146,7 +146,6 @@ namespace Website.Commands
 
             // @TODO i want to change commands to use c# attributes, so we can associate a function with a command name and description
             // shouldnt be hard coding this stuff here
-
             Attachment sub = new Attachment
             {
                 fallback = "Help Commands",

@@ -59,7 +59,16 @@ namespace Website.Managers
                         continue;
                     }
 
+                    if (file.Additions == 0 || String.Equals(file.Status, "removed")) {
+                        Console.WriteLine("Skipping {0} ({1}): file was deleted", file.Filename, file.Sha);
+                        continue;
+                    }
+
                     string parsedPatch = FullyParsePatch(file.Filename, file.RawUrl, file.Patch);
+                    if (String.IsNullOrEmpty(parsedPatch)) {
+                        Console.WriteLine("Discarding {0} ({1}): no relevant terms found in parsed patch", file.Filename, file.Sha);
+                        continue;
+                    }
 
                     CodeDoc doc = new CodeDoc();
                     doc.Id = file.Sha;
@@ -76,7 +85,7 @@ namespace Website.Managers
                     doc.Unindexed_Patch = parsedPatch;
                     doc.Patch = parsedPatch;
                     doc.Repo = repo.Name;
-                    doc.Html_Url = commit.Commit.Url;
+                    doc.Html_Url = commit.HtmlUrl;
                     doc.Message = commit.Commit.Message;
                     doc.Prog_Language = SrcML.supportedExtensions[ext];
 
