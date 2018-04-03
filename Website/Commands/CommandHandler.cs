@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Website.Manager;
@@ -145,15 +146,57 @@ namespace Website.Commands
 
             // @TODO i want to change commands to use c# attributes, so we can associate a function with a command name and description
             // shouldnt be hard coding this stuff here
-            sb.AppendLine("*Available commands:* ");
 
-            sb.AppendLine("/knowhows to <query> -- performs a natural language search");
-            sb.AppendLine("/knowhows search <query> -- performs search for explicit request");
-            sb.AppendLine("/knowhows track <repository name> -- tracks and indexes one of your repositories");
-            sb.AppendLine("/knowhows untrack <repository name> -- untracks and unindexes one of your repositories");
-            sb.AppendLine("/knowhows help -- shows this help message");
+            Attachment sub = new Attachment
+            {
+                fallback = "Help Commands",
+                pretext = "*Available commands:*",
+                title = "/knowhows to <query>",
+                text = "Performs a natural language search",
+                color = "#7CD197"
+            };
 
-            return new CommandResponse(sb.ToString());
+            Attachment sub1 = new Attachment
+            {
+                fallback = "Help Commands",
+                title = "/knowhows search <query>",
+                text = "Performs search for explicit request",
+                color = "#7CD197"
+            };
+
+            Attachment sub2 = new Attachment
+            {
+                fallback = "Help Commands",
+                title = "/knowhows track <repository name>",
+                text = "Tracks and indexes one of your repositories",
+                color = "#5397c1"
+            };
+
+            Attachment sub3 = new Attachment
+            {
+                fallback = "Help Commands",
+                title = "/knowhows untrack <repository name>",
+                text = "Untracks and unindexes one of your repositories",
+                color = "#5397c1"
+            };
+
+            Attachment sub4 = new Attachment
+            {
+                fallback = "Help Commands",
+                title = "/knowhows help",
+                text = "Shows this help message",
+                color = "#c16883"
+            };
+
+            List<Attachment> suby = new List<Attachment>();
+            suby.Add(sub);
+            suby.Add(sub1);
+            suby.Add(sub2);
+            suby.Add(sub3);
+            suby.Add(sub4);
+
+
+            return new CommandResponse(suby);
         }
     }
 }
