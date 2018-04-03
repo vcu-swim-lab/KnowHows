@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Website.Manager;
 using Website.Managers;
@@ -44,22 +45,53 @@ namespace Website.Commands
                 else
                     sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
 
-                // should always be a max of 5 results, set in Solr Query
-                for (int i = 0; i < results.Count; i++)
-                {
-                    var result = results[i];
-                    // dont return results from questioner
-                    // if (result.Committer_Name == user.UserID)
-                    //     continue;
-
-                    sb.AppendLine(String.Format("• *<@{0}>* made changes to <{3}|*{1}*> on *{2}*. ",
-                        result.Committer_Name,
-                        result.Filename,
-                        result.Author_Date.ToShortDateString(),
-                        result.Html_Url));
-                }
+                sb.AppendLine(GenerateResults(results));
             }
             return new CommandResponse(sb.ToString());
+        }
+
+        private static string GenerateResults(List<CodeDoc> results)
+        {
+            var allResultUsers = results.Select(x => x.Committer_Name).Distinct().ToList();
+
+            StringBuilder sb = new StringBuilder();
+
+            while (results.Any())
+            {
+
+                var topUser = results[0].Committer_Name;
+
+                // begining of new result
+                sb.Append(String.Format("• *<@{0}>* knows and made changes to <{2}|*{1}*>",
+                    results[0].Committer_Name,
+                    results[0].Filename,
+                    results[0].Html_Url));
+
+                var allTopUserResults = results.Where(x => x.Committer_Name == topUser).ToList();
+
+                if (results.Count > 1)
+                {
+                    for (int i = 1; i < allTopUserResults.Count; i++)
+                    {
+                        // last result
+                        if (i == allTopUserResults.Count - 1)
+                        {
+                            sb.Append(String.Format(", and <{1}|*{0}*>.",
+                                allTopUserResults[i].Filename,
+                                allTopUserResults[i].Html_Url));
+                        }
+                        else
+                            sb.Append(String.Format(", <{1}|*{0}*>",
+                                allTopUserResults[i].Filename,
+                                allTopUserResults[i].Html_Url));
+                    }
+                }
+
+                results.RemoveAll(x => x.Committer_Name == topUser);
+                sb.AppendLine("");
+            }
+
+            return sb.ToString();
         }
 
         private static string ObtainQuery(string text)
