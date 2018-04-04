@@ -90,9 +90,9 @@ namespace Website.Manager
 
         public void AutoTrackRepositories()
         {
-            var repos = _client.Repository.GetAllPublic().Result;
-            foreach (var repo in repos) _trackedRepositories.Add(repo.Name);
-            Task.Run(() => SolrManager.Instance.AutoTrackRepos(this));
+            // var repos = _client.Repository.GetAllPublic().Result;
+            // foreach (var repo in repos) _trackedRepositories.Add(repo.Name);
+            // Task.Run(() => SolrManager.Instance.AutoTrackRepos(this));
         }
 
 		public bool TrackRepository(string repositoryName)

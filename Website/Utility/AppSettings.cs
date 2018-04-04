@@ -15,6 +15,7 @@ namespace Website.Utility
 
         // Website Settings
         public string WEBSITE_BASE_URL { get; set; }
+        public string WEBSITE_PORT { get; set; }
 
     }
 }

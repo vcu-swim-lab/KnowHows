@@ -7,8 +7,6 @@ namespace Website
 {
     public class Program
     {
-        private const int WEBSITE_PORT = 53222;
-
         public static void Main(string[] args)
         {
             var config = new ConfigurationBuilder()
@@ -22,7 +20,6 @@ namespace Website
                         .UseContentRoot(Directory.GetCurrentDirectory())
                         .UseIISIntegration()
                         .UseStartup<Startup>()
-                        .UseUrls("http://*:" + WEBSITE_PORT)
                         .Build();
 
             host.Run();

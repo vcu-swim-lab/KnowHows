@@ -29,11 +29,13 @@ namespace Website.Controllers
             WebClient client = new WebClient();
             client.Headers["Accept"] = "application/json";
 
-            string uri = String.Format("{0}?client_id={1}&client_secret={2}&code={3}&redirect_uri={4}&state={5}",
+            string uri = String.Format("{0}?client_id={1}&client_secret={2}&code={3}&redirect_uri={4}:{5}{6}&state={7}",
                 GITHUB_APP_OAUTH_ACCESS_URL,
                 _options.GITHUB_APP_CLIENT_ID,
                 _options.GITHUB_APP_CLIENT_SECRET,
                 code,
+                _options.WEBSITE_BASE_URL,
+                _options.WEBSITE_PORT,
                 _options.GITHUB_APP_OAUTH_REDIRECT_URL,
                 "state");
 
@@ -57,7 +59,9 @@ namespace Website.Controllers
             Console.WriteLine("Received GitHub OAuth: '{0}', '{1}'", request.code, response.access_token);
 
             UserManager.Instance.AddGitHubAuth(request.state, response.access_token);
-            return Ok("You may now close this tab");
+            Response.Headers["REFRESH"] = String.Format("3;URL={0}", _options.WEBSITE_BASE_URL); // Redirect to the base URL after three seconds
+            return Ok("Successfully authenticated. Now redirecting...");
+
         }
 
         [HttpGet]
@@ -66,9 +70,11 @@ namespace Website.Controllers
         {
             UserManager.Instance.AddPendingGitHubAuth(uuid);
 
-            return Redirect(String.Format("{0}?client_id={1}&redirect_uri={2}&scope={3}&state={4}&allow_signup={5}",
+            return Redirect(String.Format("{0}?client_id={1}&redirect_uri={2}:{3}{4}&scope={5}&state={6}&allow_signup={7}",
                 GITHUB_APP_OAUTH_URL,
                 _options.GITHUB_APP_CLIENT_ID,
+                _options.WEBSITE_BASE_URL,
+                _options.WEBSITE_PORT,
                 _options.GITHUB_APP_OAUTH_REDIRECT_URL,
                 GITHUB_APP_OAUTH_SCOPE,
                 uuid,
