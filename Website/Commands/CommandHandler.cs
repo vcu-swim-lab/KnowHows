@@ -50,10 +50,30 @@ namespace Website.Commands
             return new CommandResponse(sb.ToString());
         }
 
+        private static CommandResponse HandleSearch(GitHubUser user, Command command)
+        {
+
+            string query = ObtainQuery(command.text);
+            var results = SolrManager.Instance.PerformQuery(query, user.ChannelID);
+
+            StringBuilder sb = new StringBuilder();
+
+            if (results.Count == 0) sb.AppendLine("*No results found*");
+            else
+            {
+                if (results.Count == 1)
+                    sb.AppendLine(String.Format("Found *{0}* result for *{1}*:", results.Count, query));
+                else
+                    sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
+
+                sb.AppendLine(GenerateResults(results));
+            }
+
+            return new CommandResponse(sb.ToString());
+        }
+
         private static string GenerateResults(List<CodeDoc> results)
         {
-            var allResultUsers = results.Select(x => x.Committer_Name).Distinct().ToList();
-
             StringBuilder sb = new StringBuilder();
 
             while (results.Any())
@@ -99,40 +119,6 @@ namespace Website.Commands
             string action = text.Split(' ')[0];
 
             return text.Substring(text.IndexOf(action) + (action.Length + 1));
-        }
-
-        private static CommandResponse HandleSearch(GitHubUser user, Command command)
-        {
-
-            string query = ObtainQuery(command.text);
-            var results = SolrManager.Instance.PerformQuery(query, user.ChannelID);
-
-            StringBuilder sb = new StringBuilder();
-
-            if (results.Count == 0) sb.AppendLine("*No results found*");
-            else
-            {
-                if (results.Count == 1)
-                    sb.AppendLine(String.Format("Found *{0}* result for *{1}*:", results.Count, query));
-                else
-                    sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
-                // should always be a max of 5 results, set in Solr Query
-                for (int i = 0; i < results.Count; i++)
-                {
-                    var result = results[i];
-                    // dont return results from questioner
-                    // if (result.Committer_Name == user.UserID)
-                    //    continue;
-
-                    sb.AppendLine(String.Format("• *<@{0}>* made changes to <{3}|*{1}*> on *{2}*. ",
-                        result.Committer_Name,
-                        result.Filename,
-                        result.Author_Date.ToShortDateString(),
-                        result.Html_Url));
-                }
-            }
-
-            return new CommandResponse(sb.ToString());
         }
 
         private static CommandResponse HandleTrack(GitHubUser user, Command command)
