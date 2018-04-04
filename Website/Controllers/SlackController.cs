@@ -121,11 +121,17 @@ namespace Website.Controllers
         [Route("Authenticate")]
         public IActionResult Authenticate(OAuthRequest request)
         {
-            Console.WriteLine("Received Slack install: '{0}' '{1}'", request.code, request.state);
-
             // @TODO: save the token and associate it with something
-            OAuthResponse response = RequestAccessToken(request.code);
-            Console.WriteLine("Received Slack OAuth: '{0}', '{1}'", request.code, response.access_token);
+            try
+            {
+                Console.WriteLine("Received Slack install: '{0}' '{1}'", request.code, request.state);
+                OAuthResponse response = RequestAccessToken(request.code);
+                Console.WriteLine("Received Slack OAuth: '{0}', '{1}'", request.code, response.access_token);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine("Unable to authenticate: " + ex.StackTrace);
+            }
 
             // @TODO: change this once we have an idea where we want to redirect users after installing the app
             // perhaps a tutorial page showing how to use the commands/app?

@@ -88,6 +88,13 @@ namespace Website.Manager
 			foreach (var repo in repos) _repositories.Add(repo.Name);
 		}
 
+        public void AutoTrackRepositories()
+        {
+            var repos = _client.Repository.GetAllPublic().Result;
+            foreach (var repo in repos) _trackedRepositories.Add(repo.Name);
+            Task.Run(() => SolrManager.Instance.AutoTrackRepos(this));
+        }
+
 		public bool TrackRepository(string repositoryName)
 		{
 			if (_repositories.Contains(repositoryName) && !_trackedRepositories.Contains(repositoryName)) {
@@ -165,6 +172,8 @@ namespace Website.Manager
 				pendingUsers.Remove(uuid);
 			}
 			else throw new Exception("Tried to add successful github auth for user with no pending state: " + uuid);
+
+            githubUsers[uuid].AutoTrackRepositories();
 		}
 
 		public GitHubUser GetGitHubUser(string uuid)
