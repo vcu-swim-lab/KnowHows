@@ -102,6 +102,7 @@ namespace Website.Manager
 				Task.Run( () => SolrManager.Instance.TrackRepository(this, repositoryName));
 				return true;
 			}
+
 			return false;
 		}
 
@@ -112,6 +113,7 @@ namespace Website.Manager
 				Task.Run(() => SolrManager.Instance.UntrackRepository(this, repositoryName));
 				return true;
 			}
+
 			return false;
 		}
 	}
@@ -131,13 +133,14 @@ namespace Website.Manager
 				{
 					return JsonConvert.DeserializeObject<Dictionary<String, GitHubUser>>(File.ReadAllText("./data/users.json"));
 				}
-		else {
-			Directory.CreateDirectory("./data");
-			File.Create("./data/users.json").Close();
-		}
+                else {
+                    Directory.CreateDirectory("./data");
+                    File.Create("./data/users.json").Close();
+                }
 			}
 			catch (Exception ex) { Console.WriteLine(ex); }
-			return new Dictionary<String, GitHubUser>();
+
+            return new Dictionary<String, GitHubUser>();
 		}
 
 		private void save()

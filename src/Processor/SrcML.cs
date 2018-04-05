@@ -130,6 +130,7 @@ namespace Processor
             }
 
             if (String.IsNullOrEmpty(output)) return new XDocument();
+
             return XDocument.Parse(output);
         }
 

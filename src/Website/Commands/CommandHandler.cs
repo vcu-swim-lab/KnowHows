@@ -40,13 +40,11 @@ namespace Website.Commands
             if (results.Count == 0) sb.AppendLine("*No results found*");
             else
             {
-                if (results.Count == 1)
-                    sb.AppendLine(String.Format("Found *{0}* result for *{1}*:", results.Count, query));
-                else
-                    sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
-
+                if (results.Count == 1) sb.AppendLine(String.Format("Found *{0}* result for *{1}*:", results.Count, query));
+                else sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
                 sb.AppendLine(GenerateResults(results));
             }
+
             return new CommandResponse(sb.ToString());
         }
 
@@ -61,11 +59,8 @@ namespace Website.Commands
             if (results.Count == 0) sb.AppendLine("*No results found*");
             else
             {
-                if (results.Count == 1)
-                    sb.AppendLine(String.Format("Found *{0}* result for *{1}*:", results.Count, query));
-                else
-                    sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
-
+                if (results.Count == 1) sb.AppendLine(String.Format("Found *{0}* result for *{1}*:", results.Count, query));
+                else sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
                 sb.AppendLine(GenerateResults(results));
             }
 
@@ -78,7 +73,6 @@ namespace Website.Commands
 
             while (results.Any())
             {
-
                 var topUser = results[0].Committer_Name;
 
                 // begining of new result
@@ -155,6 +149,7 @@ namespace Website.Commands
         {
             StringBuilder sb = new StringBuilder();
             foreach (var repo in list) sb.AppendLine("• " + repo);
+
             return sb.ToString();
         }
 
@@ -211,7 +206,6 @@ namespace Website.Commands
             suby.Add(sub2);
             suby.Add(sub3);
             suby.Add(sub4);
-
 
             return new CommandResponse(suby);
         }

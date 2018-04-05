@@ -43,7 +43,7 @@ namespace Website.Managers
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
             var repos = user.GitHubClient.Repository.GetAllPublic().Result;
 
-            foreach(var repo in repos)
+            foreach (var repo in repos)
             {
                 var commits = user.GitHubClient.Repository.Commit.GetAll(repo.Owner.Login, repo.Name).Result;
 
@@ -69,7 +69,6 @@ namespace Website.Managers
             var associated_files = user.GitHubClient.Repository.Commit.Get(repo.Id, commit.Sha).Result;
             foreach (var file in associated_files.Files)
             {
-
                 string ext = Path.GetExtension(file.Filename);
                 if (!SrcML.supportedExtensions.ContainsKey(ext))
                 {
@@ -145,9 +144,7 @@ namespace Website.Managers
         private string FullyParsePatch(string fileName, string rawUrl, string patch)
         {
             DiffParser parser = new DiffParser();
-
             string rawFile = GetFullRawFile(rawUrl);
-
             var terms = parser.FindTerms(fileName, rawFile, patch);
 
             return string.Join(' ', terms);
@@ -166,7 +163,7 @@ namespace Website.Managers
             }
             catch (WebException ex)
             {
-                Console.WriteLine("Something happened downloading full file: " + ex);
+                Console.WriteLine("Failed to download a full file: " + ex);
             }
             return fullFile;
         }

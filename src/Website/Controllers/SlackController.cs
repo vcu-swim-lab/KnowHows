@@ -103,7 +103,7 @@ namespace Website.Controllers
 
             string uuid = parameters["team_id"] + "." + parameters["channel_id"] + "." + parameters["user_id"];
 
-            if(UserManager.Instance.IsGitHubAuthenticated(uuid))
+            if (UserManager.Instance.IsGitHubAuthenticated(uuid))
             {
                 GitHubUser user = UserManager.Instance.GetGitHubUser(uuid);
                 return CommandHandler.HandleCommand(user, command);
@@ -136,8 +136,6 @@ namespace Website.Controllers
                 Console.WriteLine("Unable to authenticate: " + ex.StackTrace);
             }
 
-            // @TODO: change this once we have an idea where we want to redirect users after installing the app
-            // perhaps a tutorial page showing how to use the commands/app?
             return Redirect(Url.Content("~/"));
         }
 
