@@ -59,7 +59,7 @@ namespace Website.Controllers
             Console.WriteLine("Received GitHub OAuth: '{0}', '{1}'", request.code, response.access_token);
 
             UserManager.Instance.AddGitHubAuth(request.state, response.access_token);
-            Response.Headers["REFRESH"] = String.Format("3;URL={0}", _options.WEBSITE_BASE_URL); // Redirect to the base URL after three seconds
+            Response.Headers["REFRESH"] = String.Format("3;URL={0}:{1}", _options.WEBSITE_BASE_URL, _options.WEBSITE_PORT); // Redirect to the base URL after three seconds
             return Ok("Successfully authenticated. Now redirecting...");
 
         }
