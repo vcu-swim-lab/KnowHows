@@ -55,7 +55,7 @@ namespace Website.Controllers
 
         private Command GetCommandFromRequestParameters(Dictionary<string, string> dictionary)
         {
-             // Parse keys and values into command using reflection
+            // Parse keys and values into command using reflection
             Command c = new Command();
             
             foreach (var k in dictionary.Keys) {
