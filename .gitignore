@@ -164,8 +164,8 @@ $RECYCLE.BIN/
 # =========================
 # Configuration Files
 # =========================
-Website/**/appsettings.json
-Website/**/appsettings.Development.json
+appsettings.json
+appsettings.Development.json
 
 data
 data/**
