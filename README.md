@@ -2,6 +2,8 @@
 
 KnowHows is a Slack app that allows users to search repositories for people who have knowledge on certain parts of code.
 
+[![Add to Slack](https://platform.slack-edge.com/img/add_to_slack.png)](https://slack.com/oauth/authorize?client_id=183604701555.341310646448&scope=commands)
+
 ## Installation
 ### Prequisities
 * Visual Studio 2017 or Visual Studio Community
