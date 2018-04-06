@@ -24,6 +24,7 @@ namespace Website
         {
             services.AddMvc();
             services.Configure<AppSettings>(Configuration.GetSection("AppSettings"));
+            SolrUrl.SOLR_URL = Configuration.GetSection("AppSettings").Get<AppSettings>().SOLR_URL;
 
             LanguageExtentionConfig =
                 Configuration.GetSection("LanguageExtentionConfig").GetChildren()

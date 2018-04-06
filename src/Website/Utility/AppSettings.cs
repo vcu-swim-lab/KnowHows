@@ -13,6 +13,9 @@ namespace Website.Utility
         public string SLACK_APP_CLIENT_SECRET { get; set; }
         public string SLACK_APP_OAUTH_REDIRECT_URL { get; set; }
 
+        // Solr Settings
+        public string SOLR_URL { get; set; }
+
         // Website Settings
         public string WEBSITE_BASE_URL { get; set; }
         public string WEBSITE_PORT { get; set; }

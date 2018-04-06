@@ -17,7 +17,7 @@ namespace Website.Managers
     public class SolrManager
     {
         private const int RESULTS = 10;
-        string connection = "http://104.131.188.205:8983/solr/knowhows";
+        string connection = SolrUrl.SOLR_URL;
         public static SolrManager Instance = new SolrManager();
 
         private Dictionary<String, DateTime> lastFetchTimes;
