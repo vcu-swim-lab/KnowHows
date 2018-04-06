@@ -38,3 +38,6 @@ From a Slack channel with KnowHows installed, the app can be invoked with the sl
 
 ## Credits
 KnowHows was developed [Robbie Uvanni](https://github.com/seefo), [Ben Leach](https://github.com/broem), and [Alex Aplin](https://github.com/AlexAplin) under the guidance of [Kostadin Damevski](https://egr.vcu.edu/directory/kostadindamevski/) for the [VCU Capstone Design Expo 2018](https://egr.vcu.edu/capstone/).
+
+## License
+[MIT](./LICENSE)
