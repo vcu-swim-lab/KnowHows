@@ -42,7 +42,7 @@ namespace Website.Controllers
                 code,
                 _options.WEBSITE_BASE_URL,
                 _options.WEBSITE_PORT,
-                _options.SLACK_APP_OAUTH_REDIRECT_URL);
+                "/api/slack/authenticate");
 
             string response = client.DownloadString(new Uri(uri));
 
@@ -149,7 +149,7 @@ namespace Website.Controllers
                 _options.SLACK_APP_CLIENT_ID,
                 _options.WEBSITE_BASE_URL,
                 _options.WEBSITE_PORT,
-                _options.SLACK_APP_OAUTH_REDIRECT_URL,
+                "/api/slack/authenticate",
                 SLACK_APP_OAUTH_SCOPE,
                 "state"));
         }

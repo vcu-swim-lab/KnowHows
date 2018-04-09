@@ -24,7 +24,7 @@ namespace Website.Controllers
             _options = optionsAccessor.Value;
         }
 
-        private OAuthResponse RequestAccessToken(string code)
+        private OAuthResponse RequestAccessToken(string code, string state)
         {
             WebClient client = new WebClient();
             client.Headers["Accept"] = "application/json";
@@ -36,8 +36,8 @@ namespace Website.Controllers
                 code,
                 _options.WEBSITE_BASE_URL,
                 _options.WEBSITE_PORT,
-                _options.GITHUB_APP_OAUTH_REDIRECT_URL,
-                "state");
+                "/api/github/authenticate",
+                state);
 
             string response = client.DownloadString(new Uri(uri));
 
@@ -53,7 +53,7 @@ namespace Website.Controllers
         public IActionResult Authenticate(OAuthRequest request)
         {
             Console.WriteLine("Received GitHub intall: '{0}', '{1}'", request.code, request.state);
-            OAuthResponse response = RequestAccessToken(request.code);
+            OAuthResponse response = RequestAccessToken(request.code, request.state);
             Console.WriteLine("Received GitHub OAuth: '{0}', '{1}'", request.code, response.access_token);
             UserManager.Instance.AddGitHubAuth(request.state, response.access_token);
 
@@ -73,7 +73,7 @@ namespace Website.Controllers
                 _options.GITHUB_APP_CLIENT_ID,
                 _options.WEBSITE_BASE_URL,
                 _options.WEBSITE_PORT,
-                _options.GITHUB_APP_OAUTH_REDIRECT_URL,
+                "/api/github/authenticate",
                 GITHUB_APP_OAUTH_SCOPE,
                 uuid,
                 "true"));
