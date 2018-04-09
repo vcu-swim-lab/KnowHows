@@ -11,6 +11,7 @@ namespace Website.Utility
         // Slack Settings
         public string SLACK_APP_CLIENT_ID { get; set; }
         public string SLACK_APP_CLIENT_SECRET { get; set; }
+        public string SLACK_APP_VERIFICATION_TOKEN { get; set; }
         public string SLACK_APP_OAUTH_REDIRECT_URL { get; set; }
 
         // Solr Settings

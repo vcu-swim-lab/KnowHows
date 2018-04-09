@@ -98,8 +98,9 @@ namespace Website.Controllers
             var command = GetCommandFromRequestParameters(parameters);
             foreach (var k in parameters.Keys) Console.WriteLine("{0}: {1}", k, parameters[k]);
 
-            // @TODO: verify message is actually from slack via verification 
-            // @TODO: proper error code based on command execution
+            if (!(parameters.ContainsKey("token") && parameters["token"].Equals(_options.SLACK_APP_VERIFICATION_TOKEN))) {
+                return new CommandResponse("*Error*: could not verify that command originated from Slack");
+            }
 
             string uuid = parameters["team_id"] + "." + parameters["channel_id"] + "." + parameters["user_id"];
 
