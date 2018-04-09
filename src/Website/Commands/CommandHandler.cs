@@ -32,9 +32,9 @@ namespace Website.Commands
         private static CommandResponse HandleNaturalLanguageSearch(GitHubUser user, Command command)
         {
             string query = ObtainQuery(command.text);
+            if(String.IsNullOrEmpty(query)) return new CommandResponse("*No results found*: empty query was provided");
 
             var results = SolrManager.Instance.PerformNLPQuery(query, user.ChannelID);
-
             StringBuilder sb = new StringBuilder();
 
             if (results.Count == 0) sb.AppendLine("*No results found*");
@@ -50,10 +50,10 @@ namespace Website.Commands
 
         private static CommandResponse HandleSearch(GitHubUser user, Command command)
         {
-
             string query = ObtainQuery(command.text);
-            var results = SolrManager.Instance.PerformQuery(query, user.ChannelID);
+            if(String.IsNullOrEmpty(query)) return new CommandResponse("*No results found*: empty query was provided");
 
+            var results = SolrManager.Instance.PerformQuery(query, user.ChannelID);
             StringBuilder sb = new StringBuilder();
 
             if (results.Count == 0) sb.AppendLine("*No results found*");
@@ -110,9 +110,8 @@ namespace Website.Commands
 
         private static string ObtainQuery(string text)
         {
-            string action = text.Split(' ')[0];
-
-            return text.Substring(text.IndexOf(action) + (action.Length + 1));
+            var query_terms = text.Split(new[]{' '}, 2);
+            return query_terms.Length > 1 ? query_terms[1] : null;
         }
 
         private static CommandResponse HandleTrack(GitHubUser user, Command command)
