@@ -17,7 +17,12 @@ namespace Website.Managers
     public class SolrManager
     {
         private const int RESULTS = 10;
-        string connection = SolrUrl.SOLR_URL;
+
+        ISolrConnection connection = new SolrNet.Impl.SolrConnection(SolrUrl.SOLR_URL)
+        {
+            HttpWebRequestFactory = new HttpWebAdapters.BasicAuthHttpWebRequestFactory(SolrUrl.SOLR_USER, SolrUrl.SOLR_SECRET)
+        };
+
         public static SolrManager Instance = new SolrManager();
 
         private Dictionary<String, DateTime> lastFetchTimes;

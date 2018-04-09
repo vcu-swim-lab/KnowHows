@@ -14,6 +14,8 @@ namespace Website.Utility
 
         // Solr Settings
         public string SOLR_URL { get; set; }
+        public string SOLR_USER { get; set; }
+        public string SOLR_SECRET { get; set; }
 
         // Website Settings
         public string WEBSITE_BASE_URL { get; set; }
