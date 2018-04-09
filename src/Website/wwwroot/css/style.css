@@ -481,7 +481,7 @@ ul { margin: 0 0 10px 30px; }
 @media only screen and (max-width: 650px)  {
     .sidebar { display: inline; }
     .flex_row { flex-direction: column; }
-    .features { align-items: center; }
+    .features.flex_row { display: block; }
     .feature { border-right: 0; width: 85%; flex-direction: row; }
     .app { flex-grow: 0; width: 100%; order: 2; }
     .description { width: 100%; order: 1; }

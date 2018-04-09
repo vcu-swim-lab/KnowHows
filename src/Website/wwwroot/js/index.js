@@ -19,7 +19,7 @@ function search() {
   }
 
   else {
-    document.getElementById("chatbox").innerHTML += '<div class="message_item"><div class="message_gutter">11:26 AM</div><div class="message_content"><div class="message_sender"><div class="message_sender_name">KnowHows</div> <div class=\"app_label\">APP<\/div></div> Here\'s who knows about <b>StringTokenizer</b>:<br />1. <div class="mention">@aplinas</div> knows and made changes to <div class="link"><b>diff-parser-test/KeyboardReader.java</b></div></div></div>';
+    document.getElementById("chatbox").innerHTML += '<div class="message_item"><div class="message_gutter">11:26 AM</div><div class="message_content"><div class="message_sender"><div class="message_sender_name">KnowHows</div> <div class=\"app_label\">APP<\/div></div> Here\'s who knows about <b>StringTokenizer</b>:<br />1. <div class="mention">@aplinas</div> knows and made changes to <div class="link">diff-parser-test/KeyboardReader.java</div></div></div>';
     var element = document.getElementById("chatbox");
     element.scrollTop = element.scrollHeight;
     document.getElementById("track").innerHTML = "";

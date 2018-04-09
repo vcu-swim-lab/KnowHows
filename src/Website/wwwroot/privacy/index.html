@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en" >
+
+<head>
+  <meta charset="UTF-8">
+  <title>Privacy Policy | KnowHows</title>
+  <link href="https://fonts.googleapis.com/css?family=Noto+Sans" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+<div class="top_bar">
+    <div class="nav_container">
+        <a class="nav_item" href="/">Home</a>
+        <a class="nav_item" href="/faq">FAQ</a>
+        <a class="nav_item active" href="#">Privacy</a>
+    </div>
+</div>
+
+<div class="content flex_column" style="max-width: 1080px">
+<h2>Introduction</h2>
+<p>This privacy policy helps you understand what information we collect, how it's used, and what choices you have.</p>
+
+<h2>Information we collect and use</h2>
+<h4>1. Slack</h4>
+<p>KnowHows collects the following information when you invoke the /knowhows command from Slack:</p>
+<ul>
+<li><b>Team, channel, and user IDs for your account.</b> This uniquely identifies you to KnowHows for your current workspace.</li>
+</ul>
+<h4>2. GitHub</h4>
+<p>KnowHows collects the following information when you authroize us to access your GitHub account:</p>
+<ul>
+<li><b>GitHub access tokens.</b> This allows us to retrieve your GitHub account information and activity.</li>
+<li><b>Names of your contributing repositories.</b> This is a list of your owned and contributing repositories.</li>
+<li><b>Repository commits authored by you.</b> This includes commit hashes, commit messages, filenames, patched file URLs, and the unified diffs for each commit.</li>
+<li><b>Fully patched files for each commit.</b> Each file with additions performed by the commit will be retrieved.</li>
+</ul>
+
+<h2>How we use your information</h2>
+<h4>1. Slack</h4>
+<p>KnowHows uses your unique identifiers to verify that commands to KnowHows originate from you on Slack.</p>
+
+<h4>2. GitHub</h4>
+<p>KnowHows uses your fully patched files to correlate the additions in commits with terms in your code. Full files and commits are processed using the srcML code parser. When completed, both are immediately discarded and only relevant isolated terms from your code are stored. This includes but is not limited to API imports, variable defintions, and class definitions.</p>
+
+<h2>Security</h2>
+<p>We take various steps to protect the information you provide to us from misuse and unauthorized access. You can always revoke access for KnowHows from <a href="https://github.com/settings/applications">your list of authorized applications on the GitHub website</a>. You can also request that KnowHows unindex and queue for removal all of your current data using `/knowhows untrack` without any arguments.</p>
+
+<h2>Contacting Us</h2>
+<p>If you have any questions about our privacy policy or practices, please feel free to contact <a href="mailto:kdamevski@vcu.edu">kdamevski@vcu.edu</a>.</p>
+</div>
+
+<div class="footer_container">
+    <div class="footer_copy">
+        Developed by Robbie Uvanni, Ben Leach, and Alex Aplin under the guidance of Kostadin Damevski for the VCU Capstone Design Expo 2018.
+    </div>
+</div>
+
+</body>
+</html>
