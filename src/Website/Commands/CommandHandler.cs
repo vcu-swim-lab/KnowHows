@@ -26,45 +26,65 @@ namespace Website.Commands
                 }
                 return HandleHelp(user, command);
             }
-            catch (Exception ex) { return new CommandResponse(String.Format("*Error:* {0}", ex.ToString())); }       
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return new CommandResponse(String.Format("There was an *Error* handling that request, please try again."));
+            }       
         }
 
         private static CommandResponse HandleNaturalLanguageSearch(GitHubUser user, Command command)
         {
-            string query = ObtainQuery(command.text);
-            if(String.IsNullOrEmpty(query)) return new CommandResponse("*No results found*: empty query was provided");
-
-            var results = SolrManager.Instance.PerformNLPQuery(query, user.ChannelID);
-            StringBuilder sb = new StringBuilder();
-
-            if (results.Count == 0) sb.AppendLine("*No results found*");
-            else
+            try
             {
-                if (results.Count == 1) sb.AppendLine(String.Format("Found *{0}* result for *{1}*:", results.Count, query));
-                else sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
-                sb.AppendLine(GenerateResults(results));
-            }
+                string query = ObtainQuery(command.text);
+                if (String.IsNullOrEmpty(query)) return new CommandResponse("*No results found*: empty query was provided");
 
-            return new CommandResponse(sb.ToString());
+                var results = SolrManager.Instance.PerformNLPQuery(query, user.ChannelID);
+                StringBuilder sb = new StringBuilder();
+
+                if (results.Count == 0) sb.AppendLine("*No results found*");
+                else
+                {
+                    if (results.Count == 1) sb.AppendLine(String.Format("Found *{0}* result for *{1}*:", results.Count, query));
+                    else sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
+                    sb.AppendLine(GenerateResults(results));
+                }
+
+                return new CommandResponse(sb.ToString());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return new CommandResponse(":( There was an error processing your request, please try again.");
+            }
         }
 
         private static CommandResponse HandleSearch(GitHubUser user, Command command)
         {
-            string query = ObtainQuery(command.text);
-            if(String.IsNullOrEmpty(query)) return new CommandResponse("*No results found*: empty query was provided");
-
-            var results = SolrManager.Instance.PerformQuery(query, user.ChannelID);
-            StringBuilder sb = new StringBuilder();
-
-            if (results.Count == 0) sb.AppendLine("*No results found*");
-            else
+            try
             {
-                if (results.Count == 1) sb.AppendLine(String.Format("Found *{0}* result for *{1}*:", results.Count, query));
-                else sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
-                sb.AppendLine(GenerateResults(results));
-            }
+                string query = ObtainQuery(command.text);
+                if (String.IsNullOrEmpty(query)) return new CommandResponse("*No results found*: empty query was provided");
 
-            return new CommandResponse(sb.ToString());
+                var results = SolrManager.Instance.PerformQuery(query, user.ChannelID);
+                StringBuilder sb = new StringBuilder();
+
+                if (results.Count == 0) sb.AppendLine("*No results found*");
+                else
+                {
+                    if (results.Count == 1) sb.AppendLine(String.Format("Found *{0}* result for *{1}*:", results.Count, query));
+                    else sb.AppendLine(String.Format("Found *{0}* results for *{1}*:", results.Count, query));
+                    sb.AppendLine(GenerateResults(results));
+                }
+
+                return new CommandResponse(sb.ToString());
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return new CommandResponse(":( There was an error processing your request, please try again.");
+            }
         }
 
         private static string GenerateResults(List<CodeDoc> results)
@@ -116,31 +136,47 @@ namespace Website.Commands
 
         private static CommandResponse HandleTrack(GitHubUser user, Command command)
         {
-            string text = command.text, action = text.Split(' ')[0];
-            string repository = text.Split(' ').Length >= 2 ? command.text.Substring(text.IndexOf(action) + (action.Length + 1)) : "";
-
-            if (user.TrackRepository(repository)) return new CommandResponse("*Successfully tracked* " + repository);
-            else
+            try
             {
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine("*Here are your available untracked repositories:* ");
-                sb.AppendLine(FormatRepositoryList(user.UntrackedRepositories));
-                return new CommandResponse(sb.ToString());
+                string text = command.text, action = text.Split(' ')[0];
+                string repository = text.Split(' ').Length >= 2 ? command.text.Substring(text.IndexOf(action) + (action.Length + 1)) : "";
+
+                if (!string.IsNullOrEmpty(repository) && user.TrackRepository(repository)) return new CommandResponse("*Successfully tracked* " + repository);
+                else
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine("*Here are your available untracked repositories:* ");
+                    sb.AppendLine(FormatRepositoryList(user.UntrackedRepositories));
+                    return new CommandResponse(sb.ToString());
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return new CommandResponse(":( There was an error processing your request, please try again.");
             }
         }
 
         private static CommandResponse HandleUntrack(GitHubUser user, Command command)
         {
-            string text = command.text, action = text.Split(' ')[0];
-            string repository = text.Split(' ').Length >= 2 ? command.text.Substring(text.IndexOf(action) + (action.Length + 1)) : "";
-
-            if (user.UntrackRepository(repository)) return new CommandResponse("*Successfully untracked* " + repository);
-            else
+            try
             {
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine("*Here are your available tracked repositories:* ");
-                sb.AppendLine(FormatRepositoryList(user.TrackedRepositories));
-                return new CommandResponse(sb.ToString());
+                string text = command.text, action = text.Split(' ')[0];
+                string repository = text.Split(' ').Length >= 2 ? command.text.Substring(text.IndexOf(action) + (action.Length + 1)) : "";
+
+                if (user.UntrackRepository(repository)) return new CommandResponse("*Successfully untracked* " + repository);
+                else
+                {
+                    StringBuilder sb = new StringBuilder();
+                    sb.AppendLine("*Here are your available tracked repositories:* ");
+                    sb.AppendLine(FormatRepositoryList(user.TrackedRepositories));
+                    return new CommandResponse(sb.ToString());
+                }
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+                return new CommandResponse(":( There was an error processing your request, please try again.");
             }
         }
 
