@@ -16,6 +16,8 @@ KnowHows is a Slack app that allows users to search repositories for people who 
 3. Create GitHub and Slack apps to generate the necessary OAuth tokens for each.
 2. Copy `appsettings.example.json` as `appsettings.json`.
 3. Update all the fields in the `AppSettings` section. The callback URLs for GitHub and Slack will be `{WEBSITE_BASE_URL}:{WESBITE_PORT}/api/github/authenticate` and `{WEBSITE_BASE_URL}:{WEBSITE_PORT}/api/slack/authenticate` respectively.
+4. Setup Solr according to [Apache's directions](https://lucene.apache.org/solr/guide/7_0/installing-solr.html) using the `schema.xml` and `solrconfig.xml` provided in the docs. 
+5. Naming conventions for your created core *MUST* match that in `appsettings.json`. This project communicates through an authenticated    user. Setting this up is left to the installer, for simple open connections configure the connection in `SolrManager.cs` to be just      your connection string.
 
 ### Building
 #### Building With Visual Studio
