@@ -46,10 +46,11 @@ namespace Website.Managers
         public void AutoTrackRepos(GitHubUser user)
         {
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
-            var repos = user.GitHubClient.Repository.GetAllPublic().Result;
+            var repos = user.GitHubClient.Repository.GetAllForCurrent().Result;
 
             foreach (var repo in repos)
             {
+                if (repo.Private) continue;
                 var commits = user.GitHubClient.Repository.Commit.GetAll(repo.Owner.Login, repo.Name).Result;
 
                 foreach (var commit in commits)
@@ -62,20 +63,23 @@ namespace Website.Managers
                         solr.Add(doc);
                     
                 }
-                Console.WriteLine("Finished tracking repository {0} for {1} to Solr", repo.Name, user.UUID);
-                solr.Commit();
             }
+            Console.WriteLine("Finished tracking repositories for {1} to Solr", user.UUID);
+            solr.Commit();
+
         }
 
         private List<CodeDoc> GetDocumentsFromCommit(GitHubUser user, Repository repo, GitHubCommit commit)
         {
             List<CodeDoc> cd = new List<CodeDoc>();
 
-            var associated_files = user.GitHubClient.Repository.Commit.Get(repo.Id, commit.Sha).Result;
-            foreach (var file in associated_files.Files)
+            //var associated_files = user.GitHubClient.Repository.Commit.Get(repo.Id, commit.Sha).Result;
+            foreach (var file in commit.Files)
             {
+
                 string ext = Path.GetExtension(file.Filename);
-                if (!SrcML.supportedExtensions.ContainsKey(ext))
+
+                if (String.IsNullOrEmpty(ext) || !SrcML.supportedExtensions.ContainsKey(ext))
                 {
                     Console.WriteLine("Skipping {0} ({1}): not supported by SrcML", file.Filename, file.Sha);
                     continue;
@@ -124,26 +128,25 @@ namespace Website.Managers
             return cd;
         }
 
-        public void TrackRepository(GitHubUser user, String repository)
+        public void TrackRepository(GitHubUser user, List<Repository> repositories)
         {
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
 
-            var repos = user.GitHubClient.Repository.GetAllForCurrent().Result;
-            var repo = repos.Where(r => r.Name == repository).ToList()[0];
-
-            var commits = user.GitHubClient.Repository.Commit.GetAll(repo.Owner.Login, repo.Name).Result;
-
-            foreach (var commit in commits)
+            foreach (var repo in repositories)
             {
-                if (commit.Author != null && commit.Author.Login != user.GitHubClient.User.Current().Result.Login) continue;
-                var docsToAdd = GetDocumentsFromCommit(user, repo, commit);
+                var commits = user.GitHubClient.Repository.Commit.GetAll(repo.Owner.Login, repo.Name).Result;
 
-                foreach (var doc in docsToAdd)
-                    solr.Add(doc);
+                foreach (var commit in commits)
+                {
+                    if (commit.Author != null && commit.Author.Login != user.GitHubClient.User.Current().Result.Login) continue;
+                    var docsToAdd = GetDocumentsFromCommit(user, repo, commit);
+
+                    foreach (var doc in docsToAdd)
+                        solr.Add(doc);
+                }
+                solr.Commit();
+                Console.WriteLine(String.Format("Finished tracking {0} repository for {1} to Solr", repo.Name , user.UUID));
             }
-
-            solr.Commit();
-            Console.WriteLine("Finished tracking repository {0} for {1} to Solr", repository, user.UUID);
         }
 
         private string FullyParsePatch(string fileName, string rawUrl, string patch)

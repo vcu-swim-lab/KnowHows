@@ -11,10 +11,13 @@ namespace Website.Commands
 {
     public class CommandHandler
     {
-        public static CommandResponse HandleCommand(GitHubUser user, Command command)
+        public static CommandResponse HandleCommand(GitHubUser user, Command command, bool autoRun = false)
         {
             try
             {
+                if (autoRun)
+                    return HandleAutoRunTracking(user);
+
                 string action = command.text.Split(' ')[0];
                 switch (action)
                 {
@@ -31,6 +34,13 @@ namespace Website.Commands
                 Console.WriteLine(ex.ToString());
                 return new CommandResponse(String.Format("There was an *Error* handling that request, please try again."));
             }       
+        }
+
+        private static CommandResponse HandleAutoRunTracking(GitHubUser user)
+        {
+            if (user.AutoTrackRepos())
+                return new CommandResponse("Thanks for supporting us :heart_eyes:, to get help with available commands please type help into the command!");
+            return new CommandResponse("Thanks for supporting us :heart_eyes:, to get help with available commands please type help into the command!");
         }
 
         private static CommandResponse HandleNaturalLanguageSearch(GitHubUser user, Command command)
@@ -141,7 +151,12 @@ namespace Website.Commands
                 string text = command.text, action = text.Split(' ')[0];
                 string repository = text.Split(' ').Length >= 2 ? command.text.Substring(text.IndexOf(action) + (action.Length + 1)) : "";
 
-                if (!string.IsNullOrEmpty(repository) && user.TrackRepository(repository)) return new CommandResponse("*Successfully tracked* " + repository);
+                if (!string.IsNullOrEmpty(repository) && user.TrackRepository(repository))
+                {
+                    if (repository == "*")
+                        repository = "*All Repos*";
+                    return new CommandResponse("*Successfully tracked* " + repository);
+                }
                 else
                 {
                     StringBuilder sb = new StringBuilder();

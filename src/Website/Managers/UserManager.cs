@@ -16,6 +16,8 @@ namespace Website.Manager
 
         private String _gitHubAccessToken;
 
+        public bool _hasBeenAutoRun;
+
         [JsonProperty(PropertyName = "Repositories")]
         private List<String> _repositories;
 
@@ -78,6 +80,7 @@ namespace Website.Manager
             this.UserID = userId;
             this._repositories = new List<String>();
             this._trackedRepositories = new List<String>();
+            this._hasBeenAutoRun = false;
             this._client = new GitHubClient(new ProductHeaderValue(userId));
         }
 
@@ -88,18 +91,43 @@ namespace Website.Manager
             foreach (var repo in repos) _repositories.Add(repo.Name);
         }
 
-        public void AutoTrackRepositories()
+        public bool AutoTrackRepos()
         {
-            // var repos = _client.Repository.GetAllPublic().Result;
-            // foreach (var repo in repos) _trackedRepositories.Add(repo.Name);
-            // Task.Run(() => SolrManager.Instance.AutoTrackRepos(this));
+
+            var repos = _client.Repository.GetAllForCurrent().Result;
+
+            foreach (var repo in repos)
+            {
+                if (!_trackedRepositories.Contains(repo.Name) && !repo.Private)
+                {
+                    _trackedRepositories.Add(repo.Name);
+                    Task.Run(() => SolrManager.Instance.AutoTrackRepos(this));
+                }
+                    
+            }
+            
+            return true;
         }
 
         public bool TrackRepository(string repositoryName)
         {
-            if (_repositories.Contains(repositoryName) && !_trackedRepositories.Contains(repositoryName)) {
-                _trackedRepositories.Add(repositoryName);
-                Task.Run( () => SolrManager.Instance.TrackRepository(this, repositoryName));
+            List<Repository> repos = new List<Repository>();
+
+            if (repositoryName == "*")
+                repos.AddRange(_client.Repository.GetAllForCurrent().Result);
+            else
+            {
+                var reps = _client.Repository.GetAllForCurrent().Result;
+                repos.Add(reps.Where(r => r.Name == repositoryName).ToList()[0]);
+            }
+
+            // check if repos contains untracked data already
+            repos.RemoveAll(r => _trackedRepositories.Contains(r.Name));
+
+            if (repos.Any())
+            {
+                _trackedRepositories.AddRange(repos.Select(x => x.Name));
+                Task.Run(() => SolrManager.Instance.TrackRepository(this, repos));
                 return true;
             }
 
@@ -149,7 +177,8 @@ namespace Website.Manager
             Console.WriteLine("Performing save of current user manager at {0}", DateTime.Now);
 
             // Reoccuring save
-            Task.Run(() => {
+            Task.Run(() =>
+            {
                 Thread.Sleep(1000 * 60); // every 60 seconds
                 save();
             });
@@ -160,6 +189,16 @@ namespace Website.Manager
         public bool IsGitHubAuthenticated(string uuid)
         {
             return githubUsers.ContainsKey(uuid);
+        }
+
+        public bool HasBeenAutoRun(string uuid)
+        {
+            return githubUsers[uuid]._hasBeenAutoRun;
+        }
+
+        public void SetAutoRun(string uuid)
+        {
+            githubUsers[uuid]._hasBeenAutoRun = true;
         }
 
         public void AddPendingGitHubAuth(string uuid)
@@ -175,8 +214,6 @@ namespace Website.Manager
                 pendingUsers.Remove(uuid);
             }
             else throw new Exception("Tried to add successful github auth for user with no pending state: " + uuid);
-
-            githubUsers[uuid].AutoTrackRepositories();
         }
 
         public GitHubUser GetGitHubUser(string uuid)

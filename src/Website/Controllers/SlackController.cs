@@ -106,6 +106,13 @@ namespace Website.Controllers
 
             if (UserManager.Instance.IsGitHubAuthenticated(uuid))
             {
+                if (!UserManager.Instance.HasBeenAutoRun(uuid))
+                {
+                    UserManager.Instance.SetAutoRun(uuid);
+                    GitHubUser autoUser = UserManager.Instance.GetGitHubUser(uuid);
+                    return CommandHandler.HandleCommand(autoUser, command, true);
+
+                }
                 GitHubUser user = UserManager.Instance.GetGitHubUser(uuid);
                 return CommandHandler.HandleCommand(user, command);
             }
