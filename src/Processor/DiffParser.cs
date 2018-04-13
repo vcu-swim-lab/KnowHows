@@ -159,22 +159,30 @@ namespace Processor
 
             for (int lineNumber = diffLine; lineNumber < diffLineCount; lineNumber++)
             {
-                string controlCharacter = diffLineArray[lineNumber].Substring(0, 1);
-                if (controlCharacter.Equals("-"))
+                if (!String.IsNullOrWhiteSpace(diffLineArray[lineNumber])) // Catch EOF new line addition
                 {
-                    removed++;
-                }
-                if (controlCharacter.Equals("+"))
-                {
-                    newLines.Add(fileLine);
-                    added++;
+                    string controlCharacter = diffLineArray[lineNumber].Substring(0, 1);
+                    if (controlCharacter.Equals("-"))
+                    {
+                        removed++;
+                    }
+                    if (controlCharacter.Equals("+"))
+                    {
+                        newLines.Add(fileLine);
+                        added++;
+                    }
+                    else
+                    {
+                        unchanged++;
+                    }
+
+                    fileLine++;
                 }
                 else
                 {
-                    unchanged++;
+                    added++; // Empty, so no need to add to lines that'll be processed
+                    fileLine++;
                 }
-
-                fileLine++;
 
                 // Stop processing when we've seen the entire hunk
                 if ((removed + unchanged == hunkOldCount) && (added + unchanged == hunkNewCount))
