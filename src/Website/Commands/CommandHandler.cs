@@ -39,7 +39,7 @@ namespace Website.Commands
         private static CommandResponse HandleAutoRunTracking(GitHubUser user)
         {
             if (user.AutoTrackRepos())
-                return new CommandResponse("Thanks for supporting us! :heart_eyes: To get help with available commands, please use `/knowhows help`.");
+                return new CommandResponse("Thanks for supporting us! :heart_eyes: All of your public repositories were automatically tracked. To get help with available commands, please use `/knowhows help`.");
             return new CommandResponse("Thanks for supporting us! :heart_eyes: To get help with available commands, please type `/knowhows help`.");
         }
 
