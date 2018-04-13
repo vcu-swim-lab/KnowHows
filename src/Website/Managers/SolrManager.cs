@@ -182,13 +182,19 @@ namespace Website.Managers
         /// <param name="user"></param>
         /// <param name="channel"></param>
         /// <param name="repository"></param>
-        public void UntrackRepository(GitHubUser user, String repository)
+        public void UntrackRepository(GitHubUser user, List<String> repository)
         {
-            ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
+            try
+            {
+                ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
 
-            solr.Delete(new SolrQuery("channel:" + user.ChannelID) && new SolrQuery("repo:" + repository) && new SolrQuery("committer_name:" + user.UserID));
-
-            solr.Commit();
+                if(repository.Count > 1)
+                    solr.Delete(new SolrQuery("channel:" + user.ChannelID) && new SolrQuery("repo:" + repository[0]) && new SolrQuery("committer_name:" + user.UserID));
+               else
+                    solr.Delete(new SolrQuery("channel:" + user.ChannelID) && new SolrQuery("committer_name:" + user.UserID));
+                solr.Commit();
+            }
+            catch(Exception ex) { Console.WriteLine(ex.ToString()); }
         }
 
         /// <summary>

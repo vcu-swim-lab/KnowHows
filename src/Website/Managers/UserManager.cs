@@ -136,9 +136,16 @@ namespace Website.Manager
 
         public bool UntrackRepository(string repositoryName)
         {
-            if(_trackedRepositories.Contains(repositoryName)) {
+            if(repositoryName == "*")
+            {
+                // keep it as a list if we want to have comma delimted deletion in future
+                Task.Run(() => SolrManager.Instance.UntrackRepository(this, _trackedRepositories));
+                _trackedRepositories = new List<string>();
+                return true;
+            }
+            else if(_trackedRepositories.Contains(repositoryName)) {
                 _trackedRepositories.Remove(repositoryName);
-                Task.Run(() => SolrManager.Instance.UntrackRepository(this, repositoryName));
+                Task.Run(() => SolrManager.Instance.UntrackRepository(this, new List<string>() { repositoryName }));
                 return true;
             }
 

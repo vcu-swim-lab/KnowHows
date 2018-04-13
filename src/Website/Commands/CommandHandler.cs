@@ -179,7 +179,12 @@ namespace Website.Commands
                 string text = command.text, action = text.Split(' ')[0];
                 string repository = text.Split(' ').Length >= 2 ? command.text.Substring(text.IndexOf(action) + (action.Length + 1)) : "";
 
-                if (user.UntrackRepository(repository)) return new CommandResponse("*Successfully untracked* " + repository);
+                if (user.UntrackRepository(repository))
+                {
+                    if (repository == "*")
+                        repository = "*All Repos!*";
+                    return new CommandResponse("*Successfully untracked* " + repository);
+                }
                 else
                 {
                     StringBuilder sb = new StringBuilder();
