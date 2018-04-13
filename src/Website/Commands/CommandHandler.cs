@@ -210,10 +210,7 @@ namespace Website.Commands
 
         private static CommandResponse HandleHelp(GitHubUser user, Command command)
         {
-            StringBuilder sb = new StringBuilder();
-
-            // @TODO i want to change commands to use c# attributes, so we can associate a function with a command name and description
-            // shouldnt be hard coding this stuff here
+            // TODO: move this out into separate file and deserialize in
             Attachment sub = new Attachment
             {
                 fallback = "Help Commands",
@@ -234,16 +231,16 @@ namespace Website.Commands
             Attachment sub2 = new Attachment
             {
                 fallback = "Help Commands",
-                title = "/knowhows track <repository name>",
-                text = "Tracks and indexes one of your repositories",
+                title = "/knowhows track <repository name> _or_ <*> for all",
+                text = "Tracks and indexes one or all of your repositories",
                 color = "#5397c1"
             };
 
             Attachment sub3 = new Attachment
             {
                 fallback = "Help Commands",
-                title = "/knowhows untrack <repository name>",
-                text = "Untracks and unindexes one of your repositories",
+                title = "/knowhows untrack <repository name> _or_ <*> for all",
+                text = "Untracks and unindexes one or all of your repositories",
                 color = "#5397c1"
             };
 
@@ -255,12 +252,13 @@ namespace Website.Commands
                 color = "#c16883"
             };
 
-            List<Attachment> suby = new List<Attachment>();
-            suby.Add(sub);
-            suby.Add(sub1);
-            suby.Add(sub2);
-            suby.Add(sub3);
-            suby.Add(sub4);
+            List<Attachment> suby = new List<Attachment>() {
+                sub,
+                sub1,
+                sub2,
+                sub3,
+                sub4
+            };
 
             return new CommandResponse(suby);
         }
