@@ -39,8 +39,8 @@ namespace Website.Commands
         private static CommandResponse HandleAutoRunTracking(GitHubUser user)
         {
             if (user.AutoTrackRepos())
-                return new CommandResponse("Thanks for supporting us :heart_eyes:, to get help with available commands please type help into the command!");
-            return new CommandResponse("Thanks for supporting us :heart_eyes:, to get help with available commands please type help into the command!");
+                return new CommandResponse("Thanks for supporting us! :heart_eyes: To get help with available commands, please use `/knowhows help`.");
+            return new CommandResponse("Thanks for supporting us! :heart_eyes: To get help with available commands, please type `/knowhows help`.");
         }
 
         private static CommandResponse HandleNaturalLanguageSearch(GitHubUser user, Command command)
@@ -154,7 +154,7 @@ namespace Website.Commands
                 if (!string.IsNullOrEmpty(repository) && user.TrackRepository(repository))
                 {
                     if (repository == "*")
-                        repository = "*All Repos*";
+                        repository = "*all repositories*";
                     return new CommandResponse("*Successfully tracked* " + repository);
                 }
                 else
@@ -182,7 +182,7 @@ namespace Website.Commands
                 if (user.UntrackRepository(repository))
                 {
                     if (repository == "*")
-                        repository = "*All Repos!*";
+                        repository = "*all repositories*";
                     return new CommandResponse("*Successfully untracked* " + repository);
                 }
                 else

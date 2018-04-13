@@ -64,7 +64,7 @@ namespace Website.Managers
                     
                 }
             }
-            Console.WriteLine("Finished tracking repositories for {1} to Solr", user.UUID);
+            Console.WriteLine("Finished tracking repositories for {0} to Solr", user.UUID);
             solr.Commit();
 
         }
@@ -73,8 +73,8 @@ namespace Website.Managers
         {
             List<CodeDoc> cd = new List<CodeDoc>();
 
-            //var associated_files = user.GitHubClient.Repository.Commit.Get(repo.Id, commit.Sha).Result;
-            foreach (var file in commit.Files)
+            var associated_files = user.GitHubClient.Repository.Commit.Get(repo.Id, commit.Sha).Result;
+            foreach (var file in associated_files.Files)
             {
 
                 string ext = Path.GetExtension(file.Filename);

@@ -93,17 +93,14 @@ namespace Website.Manager
 
         public bool AutoTrackRepos()
         {
-
             var repos = _client.Repository.GetAllForCurrent().Result;
 
             foreach (var repo in repos)
             {
                 if (!_trackedRepositories.Contains(repo.Name) && !repo.Private)
                 {
-                    _trackedRepositories.Add(repo.Name);
-                    Task.Run(() => SolrManager.Instance.AutoTrackRepos(this));
+                    Task.Run(() => TrackRepository(repo.Name));
                 }
-                    
             }
             
             return true;
