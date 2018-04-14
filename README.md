@@ -1,6 +1,6 @@
 ![KnowHows](https://raw.githubusercontent.com/vcu-swim-lab/KnowHows/master/docs/logo.png)
 
-KnowHows is a Slack app that allows users to search repositories for people who have knowledge on certain parts of code.
+KnowHows is a Slack application that tracks your GitHub repositories and allows users to search for other developers who have knowledge about certain parts of code, such as an API or software concept.
 
 [![Add to Slack](https://platform.slack-edge.com/img/add_to_slack.png)](https://slack.com/oauth/authorize?client_id=183604701555.341310646448&scope=commands)
 
@@ -35,10 +35,10 @@ KnowHows is a Slack app that allows users to search repositories for people who 
 ## Usage
 From a Slack channel with KnowHows installed, the app can be invoked with the slash command `/knowhows`. When you invoke the command for the first time, the app will prompt for access to your GitHub account. The available commands are:
 
-- `/knowhows to <query>` - Performs a natural language search for a concept, such as `write to a file`. This produces a ranked list of tracked users indicating files that they have changed.
-- `/knowhows search <query>` - Performs a search for an explicit query, such as an API name like `FileWriter`. This produces a ranked list of tracked users indicating files that they have changed.
-- `/knowhows track <repository_name>` - Tracks and indexes one of your repositories. When no repository is specified, a list of your untracked repositories is returned.
-- `/knowhows untrack <repository_name>` - Untracks and unindexes one of your repositories. When no repository is specified, a list of your currently tracked repositories is returned.
+- `/knowhows to [query]` - Performs a natural language search on a concept, such as `write to a file`. This produces a ranked list of tracked users indicating files that they have changed.
+- `/knowhows search [query]` - Performs a literal search on a code term, such as an API name like `FileWriter`. This produces a ranked list of tracked users indicating files that they have changed.
+- `/knowhows track [repository_name | *]` - Tracks and indexes one or all (*) of your repositories. When no repository is specified, a list of your untracked repositories is returned.
+- `/knowhows untrack [repository_name | *]` - Untracks and unindexes one or all (*) of your repositories. When no repository is specified, a list of your currently tracked repositories is returned.
 - `/knowhows help` - Prints a brief description of each of these commands.
 
 ## Credits
