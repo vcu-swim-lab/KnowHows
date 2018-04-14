@@ -5,7 +5,7 @@ KnowHows is a Slack application that tracks your GitHub repositories and allows 
 [![Add to Slack](https://platform.slack-edge.com/img/add_to_slack.png)](https://slack.com/oauth/authorize?client_id=183604701555.341310646448&scope=commands)
 
 ## Installation
-### Prequisities
+### Prerequisites
 * Visual Studio 2017 or Visual Studio Community
 * .NET Core 2.0
 * [srcML](http://www.srcml.org/)
