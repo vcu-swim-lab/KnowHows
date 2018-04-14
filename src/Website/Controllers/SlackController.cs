@@ -35,13 +35,12 @@ namespace Website.Controllers
             WebClient client = new WebClient();
             client.Headers["Accept"] = "application/json";
 
-            string uri = String.Format("{0}?client_id={1}&client_secret={2}&caaode={3}&redirect_uri={4}:{5}{6}",
+            string uri = String.Format("{0}?client_id={1}&client_secret={2}&code={3}&redirect_uri={4}{5}",
                 SLACK_APP_OAUTH_ACCESS_URL,
                 _options.SLACK_APP_CLIENT_ID,
                 _options.SLACK_APP_CLIENT_SECRET,
                 code,
                 _options.WEBSITE_BASE_URL,
-                _options.WEBSITE_PORT,
                 "/api/slack/authenticate");
 
             string response = client.DownloadString(new Uri(uri));
@@ -120,16 +119,15 @@ namespace Website.Controllers
             {
                 return new CommandResponse(String.Format
                 (
-                    "It looks like you haven't authorized us as a GitHub app in this channel! Please visit <{0}:{1}/api/github/getoauthurl?uuid={2}|this URL> to get set up",
+                    "It looks like you haven't authorized us as a GitHub app in this channel! Please visit <{0}/api/github/getoauthurl?uuid={1}|this URL> to get set up",
                     _options.WEBSITE_BASE_URL,
-                    _options.WEBSITE_PORT,
                     uuid
                 ));
             }    
         }
 
         [HttpGet]
-        [Route("Authenticate")]
+        [Route("authenticate")]
         public IActionResult Authenticate(OAuthRequest request)
         {
             // @TODO: save the token and associate it with something
@@ -151,14 +149,15 @@ namespace Website.Controllers
         [Route("getOAuthURL")]
         public IActionResult GetOAuthURL()
         {
-            return Redirect(String.Format("{0}?client_id={1}&redirect_uri={2}:{3}{4}&scope={5}&state={6}",
+            string uri = String.Format("{0}?client_id={1}&scope={2}&state={3}&redirect_uri={4}{5}",
                 SLACK_APP_OAUTH_URL,
                 _options.SLACK_APP_CLIENT_ID,
-                _options.WEBSITE_BASE_URL,
-                _options.WEBSITE_PORT,
-                "/api/slack/authenticate",
                 SLACK_APP_OAUTH_SCOPE,
-                "state"));
+                "state",
+                _options.WEBSITE_BASE_URL,
+                "/api/slack/authenticate");
+
+            return Redirect(uri);
         }
     }
 }
