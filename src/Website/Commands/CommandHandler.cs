@@ -106,10 +106,12 @@ namespace Website.Commands
                 var topUser = results[0].Committer_Name;
 
                 // begining of new result
-                sb.Append(String.Format("• *<@{0}>* knows and made changes to <{2}|*{1}*>",
+                sb.Append(String.Format("• *<@{0}>* knows and made changes to <{2}|*{3}/{1}*> ({4})",
                     results[0].Committer_Name,
                     results[0].Filename,
-                    results[0].Html_Url));
+                    results[0].Html_Url,
+                    results[0].Repo,
+                    results[0].Sha.Substring(0, 5)));
 
                 var allTopUserResults = results.Where(x => x.Committer_Name == topUser).ToList();
 
@@ -120,14 +122,18 @@ namespace Website.Commands
                         // last result
                         if (i == allTopUserResults.Count - 1)
                         {
-                            sb.Append(String.Format(", and <{1}|*{0}*>.",
+                            sb.Append(String.Format(" and <{1}|*{2}/{0}*> ({3}).",
                                 allTopUserResults[i].Filename,
-                                allTopUserResults[i].Html_Url));
+                                allTopUserResults[i].Html_Url,
+                                allTopUserResults[i].Repo,
+                                allTopUserResults[i].Sha.Substring(0, 5)));
                         }
                         else
-                            sb.Append(String.Format(", <{1}|*{0}*>",
+                            sb.Append(String.Format(", <{1}|*{2}/{0}*> ({3}),",
                                 allTopUserResults[i].Filename,
-                                allTopUserResults[i].Html_Url));
+                                allTopUserResults[i].Html_Url,
+                                allTopUserResults[i].Repo,
+                                allTopUserResults[i].Sha.Substring(0, 5)));
                     }
                 }
 
@@ -168,7 +174,7 @@ namespace Website.Commands
             catch(Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return new CommandResponse(":( There was an error processing your request, please try again.");
+                return new CommandResponse(":cry: There was an error processing your request. Please try again.");
             }
         }
 
@@ -215,32 +221,32 @@ namespace Website.Commands
             {
                 fallback = "Help Commands",
                 pretext = "*Available commands:*",
-                title = "/knowhows to <query>",
-                text = "Performs a natural language search",
+                title = "/knowhows to [query]",
+                text = "Performs a natural language search on a concept",
                 color = "#7CD197"
             };
 
             Attachment sub1 = new Attachment
             {
                 fallback = "Help Commands",
-                title = "/knowhows search <query>",
-                text = "Performs search for explicit request",
+                title = "/knowhows search [query]",
+                text = "Performs a literal search on a code term",
                 color = "#7CD197"
             };
 
             Attachment sub2 = new Attachment
             {
                 fallback = "Help Commands",
-                title = "/knowhows track <repository name> _or_ <*> for all",
-                text = "Tracks and indexes one or all of your repositories",
+                title = "/knowhows track [repository_name | *]",
+                text = "Tracks and indexes one or all (*) of your repositories",
                 color = "#5397c1"
             };
 
             Attachment sub3 = new Attachment
             {
                 fallback = "Help Commands",
-                title = "/knowhows untrack <repository name> _or_ <*> for all",
-                text = "Untracks and unindexes one or all of your repositories",
+                title = "/knowhows untrack [repository_name | *]",
+                text = "Untracks and unindexes one or all (*) of your repositories",
                 color = "#5397c1"
             };
 
