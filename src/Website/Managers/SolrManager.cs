@@ -17,6 +17,7 @@ namespace Website.Managers
     public class SolrManager
     {
         private const int RESULTS = 10;
+        private const int COMMITS_THRESHOLD = 50;
 
         ISolrConnection connection = new SolrNet.Impl.SolrConnection(SolrUrl.SOLR_URL)
         {
@@ -43,40 +44,13 @@ namespace Website.Managers
             return BasicQuery(query, channelId);
         }
 
-        public void AutoTrackRepos(GitHubUser user)
-        {
-            ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
-            var repos = user.GitHubClient.Repository.GetAllForCurrent().Result;
-
-            foreach (var repo in repos)
-            {
-                if (repo.Private) continue;
-                var commits = user.GitHubClient.Repository.Commit.GetAll(repo.Owner.Login, repo.Name).Result;
-
-                foreach (var commit in commits)
-                {
-                    if (commit.Author != null && commit.Author.Login != user.GitHubClient.User.Current().Result.Login) continue;
-
-                    var docsToAdd = GetDocumentsFromCommit(user, repo, commit);
-
-                    foreach (var doc in docsToAdd)
-                        solr.Add(doc);
-                    
-                }
-            }
-            Console.WriteLine("Finished tracking repositories for {0} to Solr", user.UUID);
-            solr.Commit();
-
-        }
-
         private List<CodeDoc> GetDocumentsFromCommit(GitHubUser user, Repository repo, GitHubCommit commit)
         {
             List<CodeDoc> cd = new List<CodeDoc>();
+            var associated_files = user.GitHubClient.Repository.Commit.Get(repo.Id, commit.Sha).Result.Files;
 
-            var associated_files = user.GitHubClient.Repository.Commit.Get(repo.Id, commit.Sha).Result;
-            foreach (var file in associated_files.Files)
+            foreach (var file in associated_files)
             {
-
                 string ext = Path.GetExtension(file.Filename);
 
                 if (String.IsNullOrEmpty(ext) || !SrcML.supportedExtensions.ContainsKey(ext))
@@ -134,18 +108,26 @@ namespace Website.Managers
 
             foreach (var repo in repositories)
             {
+                var commits_processed = 0;
                 var commits = user.GitHubClient.Repository.Commit.GetAll(repo.Owner.Login, repo.Name).Result;
 
                 foreach (var commit in commits)
                 {
+                    if (commits_processed > COMMITS_THRESHOLD) {
+                        Console.WriteLine(String.Format("Commits threshold reached on {0} for {1}. Stopping...", repo.Name, user.UUID));
+                        break;
+                    }
+
                     if (commit.Author != null && commit.Author.Login != user.GitHubClient.User.Current().Result.Login) continue;
                     var docsToAdd = GetDocumentsFromCommit(user, repo, commit);
 
-                    foreach (var doc in docsToAdd)
-                        solr.Add(doc);
+                    foreach (var doc in docsToAdd) solr.Add(doc);
+
+                    commits_processed++;
                 }
+
                 solr.Commit();
-                Console.WriteLine(String.Format("Finished tracking {0} repository for {1} to Solr", repo.Name , user.UUID));
+                Console.WriteLine(String.Format("Finished tracking {0} for {1} to Solr", repo.Name , user.UUID));
             }
         }
 
