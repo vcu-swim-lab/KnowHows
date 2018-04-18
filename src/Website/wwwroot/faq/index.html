@@ -23,16 +23,27 @@
 
 <div class="content flex_column" style="max-width: 1080px">
 <h2> What is KnowHows? </h2>
-<p>KnowHows is a Slack application that tracks your GitHub repositories and allows users to search for other developers who have knowledge about certain parts of code, such as an API or software concept. By invoking the /knowhows command in an installed Slack channel, users can query KnowHows on a code terms or general software concept parsed from repository commits. KnowHows then produces a ranked list of tracked users in your channel that are likely to have the most experience with that query.</p>
+<p>KnowHows is a Slack application that tracks your GitHub repositories and allows users to search for other developers who have knowledge about certain parts of code, such as an API or software concept. By invoking the /knowhows command in an installed Slack channel, users can query KnowHows on code terms or general software concepts parsed from repository commits. KnowHows then produces a ranked list of tracked users in your channel that are likely to have the most experience with that query.</p>
 
 <h2> How does KnowHows work? </h2>
 <p>KnowHows uses a unique combination of a Solr search engine and the srcML source code parser to provide rankings for API terms. When a repository from GitHub is requested to be tracked, each commit is processed through srcML and correlated with fully patched files to identify relevant API terms. The terms and commit messages are then inserted into a Solr core that can be queried from the Slack application. Commit messages are processed using natural-language processing (NLP) for querying on software concepts. Solr provides the heavy lifting by ranking individuals most heavily associated with that term or concept.</p>
+
+<h2> What commands are available? </h2>
+<p>From a Slack channel with KnowHows installed, the app can be invoked with the slash command /knowhows. When you invoke the command for the first time, the app will prompt for access to your GitHub account. The available commands are:</p>
+
+<ul>
+<li>"/knowhows to [query]" - Performs a natural language search on a concept, such as write to a file. This produces a ranked list of tracked users indicating files that they have changed.</li>
+<li>"/knowhows search [query]" - Performs a literal search on a code term, such as an API name like FileWriter. This produces a ranked list of tracked users indicating files that they have changed.</li>
+<li>"/knowhows track [repository_name | *]" - Tracks and indexes one or all (*) of your repositories. When no repository is specified, a list of your untracked repositories is returned.</li>
+<li>"/knowhows untrack [repository_name | *]" - Untracks and unindexes one or all (*) of your repositories. When no repository is specified, a list of your currently tracked repositories is returned.</li>
+<li>"/knowhows help" - Prints a brief description of each of these commands.</li>
+</ul>
 
 <h2> What gets tracked in a repository? </h2>
 <p>Currently, KnowHows only tracks Java (.java), C (.c), C++ (.cpp), and C# (.cs) source code commits. When a repository is tracked by you, only your authored commits are retrieved.</p>
 
 <h2> What kind of data do you store? </h2>
-<p>We does not store the full source code from repositories. We do however store the following possibly sensitive information:</p>
+<p>We do not store the full source code from repositories. We do however store the following possibly sensitive information:</p>
 
 <ul>
 <li>Commit hashes</li>

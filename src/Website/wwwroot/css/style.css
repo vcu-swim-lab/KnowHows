@@ -482,7 +482,8 @@ ul { margin: 0 0 10px 30px; }
     .sidebar { display: inline; }
     .flex_row { flex-direction: column; }
     .features.flex_row { display: block; }
-    .feature { border-right: 0; width: 85%; flex-direction: row; }
+    .feature { border-right: 0; border-bottom: 1px dotted gray; flex-direction: row; margin-bottom: 0; }
+    .feature:last-child { border-bottom: 0; }
     .app { flex-grow: 0; width: 100%; order: 2; }
     .description { width: 100%; order: 1; }
 }
