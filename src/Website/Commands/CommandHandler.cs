@@ -32,7 +32,7 @@ namespace Website.Commands
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return new CommandResponse(String.Format(":( There was an error processing your request. Please try again."));
+                return new CommandResponse(":cry: There was an error processing your request. Please try again.");
             }       
         }
 
@@ -66,7 +66,7 @@ namespace Website.Commands
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return new CommandResponse(":( There was an error processing your request. Please try again.");
+                return new CommandResponse(":cry: There was an error processing your request. Please try again.");
             }
         }
 
@@ -93,7 +93,7 @@ namespace Website.Commands
             catch (Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return new CommandResponse(":( There was an error processing your request. Please try again.");
+                return new CommandResponse(":cry: There was an error processing your request. Please try again.");
             }
         }
 
@@ -202,7 +202,7 @@ namespace Website.Commands
             catch(Exception ex)
             {
                 Console.WriteLine(ex.ToString());
-                return new CommandResponse(":( There was an error processing your request. Please try again.");
+                return new CommandResponse(":cry: There was an error processing your request. Please try again.");
             }
         }
 

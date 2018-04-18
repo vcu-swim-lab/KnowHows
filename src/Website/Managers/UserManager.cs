@@ -98,8 +98,15 @@ namespace Website.Manager
             var filteredContribRepos = allContributingRepos.Where(x => x.Type == "PushEvent").Select(x => x.Repo.Id).Distinct().ToList();
 
             // this will get us any contributing stuff!
-            foreach (var repoId in filteredContribRepos)
-                repos.Add(_client.Repository.Get(repoId).Result);
+            foreach (var repoId in filteredContribRepos) {
+                try {
+                    repos.Add(_client.Repository.Get(repoId).Result);
+                }
+                catch (Exception ex) { 
+                    Console.WriteLine(String.Format("Error: could not retrieve repository {0}", repoId));
+                    Console.WriteLine(ex.ToString()); 
+                }
+            }
 
             foreach (var repo in repos)
             {

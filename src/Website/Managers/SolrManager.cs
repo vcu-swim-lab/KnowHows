@@ -96,7 +96,7 @@ namespace Website.Managers
                 };
 
                 cd.Add(doc);
-                Console.WriteLine("Adding {0} ({1}) to Solr", doc.Filename, doc.Sha);
+                Console.WriteLine("Adding {0}/{1} ({2}) to Solr", doc.Repo, doc.Filename, doc.Sha);
             }
 
             return cd;
@@ -106,28 +106,43 @@ namespace Website.Managers
         {
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
 
-            foreach (var repo in repositories)
-            {
-                var commits_processed = 0;
-                var commits = user.GitHubClient.Repository.Commit.GetAll(repo.Owner.Login, repo.Name).Result;
-
-                foreach (var commit in commits)
+            try {
+                foreach (var repo in repositories)
                 {
-                    if (commits_processed > COMMITS_THRESHOLD) {
-                        Console.WriteLine(String.Format("Commits threshold reached on {0} for {1}. Stopping...", repo.Name, user.UUID));
-                        break;
+                    var commits_processed = 0;
+                    var commits = user.GitHubClient.Repository.Commit.GetAll(repo.Owner.Login, repo.Name).Result;
+
+                    foreach (var commit in commits)
+                    {
+                        if (commits_processed > COMMITS_THRESHOLD) {
+                            Console.WriteLine(String.Format("Commits threshold reached on {0} for {1}. Stopping...", repo.Name, user.UUID));
+                            break;
+                        }
+
+                        if (commit.Author != null && commit.Author.Login != user.GitHubClient.User.Current().Result.Login) continue;
+                        var docsToAdd = GetDocumentsFromCommit(user, repo, commit);
+
+                        foreach (var doc in docsToAdd) solr.Add(doc);
+
+                        commits_processed++;
                     }
 
-                    if (commit.Author != null && commit.Author.Login != user.GitHubClient.User.Current().Result.Login) continue;
-                    var docsToAdd = GetDocumentsFromCommit(user, repo, commit);
-
-                    foreach (var doc in docsToAdd) solr.Add(doc);
-
-                    commits_processed++;
+                    solr.Commit();
+                    Console.WriteLine(String.Format("Finished tracking {0} for {1} to Solr", repo.Name , user.UUID));
                 }
-
+            }
+            catch (RateLimitExceededException) {
+                Console.WriteLine(String.Format("Rate limit exceeded for {0}. Stopping...", user.UUID));
+            }
+            catch (AbuseException) {
+                Console.WriteLine(String.Format("Abuse detection triggered for {0}. Stopping...", user.UUID));
+            }
+            catch (Exception ex) {
+                Console.WriteLine(String.Format("Error trying to retrieve commits for {0}. Stopping...", user.UUID));
+                Console.WriteLine(ex.ToString());
+            }
+            finally {
                 solr.Commit();
-                Console.WriteLine(String.Format("Finished tracking {0} for {1} to Solr", repo.Name , user.UUID));
             }
         }
 
@@ -138,7 +153,6 @@ namespace Website.Managers
             var terms = parser.FindTerms(fileName, rawFile, patch);
 
             return string.Join(' ', terms);
-
         }
 
         private string GetFullRawFile(string rawUrl)
