@@ -1,11 +1,11 @@
 ![KnowHows](https://raw.githubusercontent.com/vcu-swim-lab/KnowHows/master/docs/logo.png)
 
-KnowHows is a Slack app that allows users to search repositories for people who have knowledge on certain parts of code.
+KnowHows is a Slack application that tracks your GitHub repositories and allows users to search for other developers who have knowledge about certain parts of code, such as an API or software concept.
 
 [![Add to Slack](https://platform.slack-edge.com/img/add_to_slack.png)](https://slack.com/oauth/authorize?client_id=183604701555.341310646448&scope=commands)
 
 ## Installation
-### Prequisities
+### Prerequisites
 * Visual Studio 2017 or Visual Studio Community
 * .NET Core 2.0
 * [srcML](http://www.srcml.org/)
@@ -13,11 +13,12 @@ KnowHows is a Slack app that allows users to search repositories for people who 
 
 ### Configuration
 1. Navigate to `Website`.
-3. Create GitHub and Slack apps to generate the necessary OAuth tokens for each.
-2. Copy `appsettings.example.json` as `appsettings.json`.
-3. Update all the fields in the `AppSettings` section. The callback URLs for GitHub and Slack will be `{WEBSITE_BASE_URL}:{WESBITE_PORT}/api/github/authenticate` and `{WEBSITE_BASE_URL}:{WEBSITE_PORT}/api/slack/authenticate` respectively.
-4. Setup Solr according to [Apache's directions](https://lucene.apache.org/solr/guide/7_0/installing-solr.html) using the `schema.xml` and `solrconfig.xml` provided in the docs. 
-5. Naming conventions for your created core *MUST* match that in `appsettings.json`. This project communicates through an authenticated    user. Setting this up is left to the installer, for simple open connections configure the connection in `SolrManager.cs` to be just      your connection string.
+2. Create GitHub and Slack apps to generate the necessary OAuth tokens for each.
+3. Copy `appsettings.example.json` as `appsettings.json`.
+4. Update all the fields in the `AppSettings` section. The callback URLs for GitHub and Slack will be `{WEBSITE_BASE_URL}/api/github/authenticate` and `{WEBSITE_BASE_URL}/api/slack/authenticate` respectively.
+5. Setup Solr according to [Apache's directions](https://lucene.apache.org/solr/guide/7_0/installing-solr.html) using the `schema.xml` and `solrconfig.xml` provided in the docs. 
+6. Naming conventions for your created core *MUST* match that in `appsettings.json`. This project communicates through an authenticated user. Setting this up is left to the installer, for simple open connections configure the connection in `SolrManager.cs` to be just your connection string.
+7. Make sure your Slack app has a slash command configured that makes requests to `{WEBSITE_BASE_URL}/api/slack/processmessage`.
 
 ### Building
 #### Building With Visual Studio
@@ -34,10 +35,10 @@ KnowHows is a Slack app that allows users to search repositories for people who 
 ## Usage
 From a Slack channel with KnowHows installed, the app can be invoked with the slash command `/knowhows`. When you invoke the command for the first time, the app will prompt for access to your GitHub account. The available commands are:
 
-- `/knowhows to <query>` - Performs a natural language search for a concept, such as `write to a file`. This produces a ranked list of tracked users indicating files that they have changed.
-- `/knowhows search <query>` - Performs a search for an explicit query, such as an API name like `FileWriter`. This produces a ranked list of tracked users indicating files that they have changed.
-- `/knowhows track <repository_name>` - Tracks and indexes one of your repositories. When no repository is specified, a list of your untracked repositories is returned.
-- `/knowhows untrack <repository_name>` - Untracks and unindexes one of your repositories. When no repository is specified, a list of your currently tracked repositories is returned.
+- `/knowhows to [query]` - Performs a natural language search on a concept, such as `write to a file`. This produces a ranked list of tracked users indicating files that they have changed.
+- `/knowhows search [query]` - Performs a literal search on a code term, such as an API name like `FileWriter`. This produces a ranked list of tracked users indicating files that they have changed.
+- `/knowhows track [repository_name | *]` - Tracks and indexes one or all (*) of your repositories. When no repository is specified, a list of your untracked repositories is returned.
+- `/knowhows untrack [repository_name | *]` - Untracks and unindexes one or all (*) of your repositories. When no repository is specified, a list of your currently tracked repositories is returned.
 - `/knowhows help` - Prints a brief description of each of these commands.
 
 ## Credits
