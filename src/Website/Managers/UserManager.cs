@@ -94,8 +94,8 @@ namespace Website.Manager
             var repos = _client.Repository.GetAllForCurrent().Result.ToList();
             var user = _client.User.Current().Result.Login;
 
-            var allContributingRepos = _client.Activity.Events.GetAllUserPerformed(user).Result;
-            var filteredContribRepos = allContributingRepos.Select(x => x.Repo.Id).Distinct().ToList();
+            var allContributingRepos = _client.Activity.Events.GetAllUserPerformedPublic(user).Result;
+            var filteredContribRepos = allContributingRepos.Where(x => x.Type == "PushEvent").Select(x => x.Repo.Id).Distinct().ToList();
 
             // this will get us any contributing stuff!
             foreach (var repoId in filteredContribRepos)
