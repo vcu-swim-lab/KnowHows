@@ -19,10 +19,10 @@ namespace Website.Manager
         public bool _hasBeenAutoRun;
 
         [JsonProperty(PropertyName = "Repositories")]
-        private List<String> _repositories;
+        private List<KeyValuePair<string, string>> _repositories;
 
         [JsonProperty(PropertyName = "TrackedRepositories")]
-        private List<String> _trackedRepositories;
+        private List<KeyValuePair<string, string>> _trackedRepositories;
 
         [JsonIgnore]
         private GitHubClient _client;
@@ -40,19 +40,19 @@ namespace Website.Manager
         }
 
         [JsonIgnore]
-        public IReadOnlyCollection<String> Repositories
+        public IReadOnlyCollection<KeyValuePair<string,string>> Repositories
         {
             get { return _repositories.AsReadOnly(); }
         }
 
         [JsonIgnore]
-        public IReadOnlyCollection<String> TrackedRepositories
+        public IReadOnlyCollection<KeyValuePair<string,string>> TrackedRepositories
         {
             get { return _trackedRepositories.AsReadOnly(); }
         }
 
         [JsonIgnore]
-        public IReadOnlyCollection<String> UntrackedRepositories
+        public IReadOnlyCollection<KeyValuePair<string, string>> UntrackedRepositories
         {
             get { return Repositories.Except(TrackedRepositories).ToList().AsReadOnly(); }
         }
@@ -69,7 +69,7 @@ namespace Website.Manager
                 }
 
                 _client.Credentials = new Credentials(_gitHubAccessToken);
-                UpdateRepositoryIndex();
+                //UpdateRepositoryIndex();
             }
         }
 
@@ -78,52 +78,67 @@ namespace Website.Manager
             this.TeamID = teamId;
             this.ChannelID = channelId;
             this.UserID = userId;
-            this._repositories = new List<String>();
-            this._trackedRepositories = new List<String>();
+            this._repositories = new List<KeyValuePair<string,string>>();
+            this._trackedRepositories = new List<KeyValuePair<string, string>>();
             this._hasBeenAutoRun = false;
             this._client = new GitHubClient(new ProductHeaderValue(userId));
         }
 
-        private void UpdateRepositoryIndex()
+        private void UpdateRepositoryIndex(string repoName, string repoOwner)
         {
-            _repositories.Clear();
-            var repos = _client.Repository.GetAllForCurrent().Result;
-            foreach (var repo in repos) _repositories.Add(repo.Name);
+            _repositories.Add(new KeyValuePair<string, string>( repoName, repoOwner));
         }
 
         public bool AutoTrackRepos()
         {
-            var repos = _client.Repository.GetAllForCurrent().Result;
+            var repos = _client.Repository.GetAllForCurrent().Result.ToList();
+            var user = _client.User.Current().Result.Login;
+
+            var allContributingRepos = _client.Activity.Events.GetAllUserPerformed(user).Result;
+            var filteredContribRepos = allContributingRepos.Select(x => x.Repo.Id).Distinct().ToList();
+
+            // this will get us any contributing stuff!
+            foreach (var repoId in filteredContribRepos)
+                repos.Add(_client.Repository.Get(repoId).Result);
 
             foreach (var repo in repos)
             {
-                if (!_trackedRepositories.Contains(repo.Name) && !repo.Private)
+                UpdateRepositoryIndex(repo.Name, repo.Id.ToString());
+
+                // shouldnt be any tracked at this point
+                if (!_trackedRepositories.Select(x => x.Key == repo.Name).Any() && !repo.Private)
                 {
-                    Task.Run(() => TrackRepository(repo.Name));
+                    Task.Run(() => TrackRepository(repo.Name, true, repo.Id.ToString()));
                 }
             }
             
             return true;
         }
 
-        public bool TrackRepository(string repositoryName)
+        public bool TrackRepository(string repositoryName, bool isAutoTRacking = false, string curUser = null)
         {
             List<Repository> repos = new List<Repository>();
 
             if (repositoryName == "*")
                 repos.AddRange(_client.Repository.GetAllForCurrent().Result);
-            else
+            else if (!isAutoTRacking)
             {
-                var reps = _client.Repository.GetAllForCurrent().Result;
-                repos.Add(reps.Where(r => r.Name == repositoryName).ToList()[0]);
+                var reps = _client.Repository.Get(long.Parse(UntrackedRepositories.First(x => x.Key == repositoryName).Value)).Result;
+                repos.Add(reps);
             }
+            else if (isAutoTRacking && curUser != null)
+            {
+                repos.Add(_client.Repository.Get(long.Parse(curUser)).Result);
+            }
+                
 
             // check if repos contains untracked data already
-            repos.RemoveAll(r => _trackedRepositories.Contains(r.Name));
+            // TODO: Fix this
+            //repos.RemoveAll(r => r.Name == _trackedRepositories.First(x => x.Key == r.Name).Key);
 
             if (repos.Any())
             {
-                _trackedRepositories.AddRange(repos.Select(x => x.Name));
+                _trackedRepositories.AddRange(repos.Select(x => new KeyValuePair<string, string>( x.Name, x.Id.ToString()) ));
                 Task.Run(() => SolrManager.Instance.TrackRepository(this, repos));
                 return true;
             }
@@ -133,15 +148,16 @@ namespace Website.Manager
 
         public bool UntrackRepository(string repositoryName)
         {
-            if(repositoryName == "*")
+            if (repositoryName == "*")
             {
-                // keep it as a list if we want to have comma delimted deletion in future
-                Task.Run(() => SolrManager.Instance.UntrackRepository(this, _trackedRepositories));
-                _trackedRepositories = new List<string>();
+                Task.Run(() => SolrManager.Instance.UntrackRepository(this, _trackedRepositories.Select(x => x.Key).ToList()));
+                _trackedRepositories = new List<KeyValuePair<string,string>>();
                 return true;
             }
-            else if(_trackedRepositories.Contains(repositoryName)) {
-                _trackedRepositories.Remove(repositoryName);
+            else if (_trackedRepositories.Exists(x => x.Key == repositoryName))
+            {
+                // TODO: Some people may have more than one repo with same name, fix this
+                _trackedRepositories.RemoveAll(x => x.Key == repositoryName);
                 Task.Run(() => SolrManager.Instance.UntrackRepository(this, new List<string>() { repositoryName }));
                 return true;
             }

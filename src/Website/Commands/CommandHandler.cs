@@ -200,10 +200,10 @@ namespace Website.Commands
             }
         }
 
-        private static String FormatRepositoryList(IReadOnlyCollection<String> list)
+        private static String FormatRepositoryList(IReadOnlyCollection<KeyValuePair<string, string>> list)
         {
             StringBuilder sb = new StringBuilder();
-            foreach (var repo in list) sb.AppendLine("• " + repo);
+            foreach (var repo in list) sb.AppendLine("• " + repo.Key);
 
             return sb.ToString();
         }
