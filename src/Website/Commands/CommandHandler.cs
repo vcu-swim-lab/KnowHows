@@ -122,14 +122,14 @@ namespace Website.Commands
                         // last result
                         if (i == allTopUserResults.Count - 1)
                         {
-                            sb.Append(String.Format(" and <{1}|*{2}/{0}*> ({3}).",
+                            sb.Append(String.Format(", and <{1}|*{2}/{0}*> ({3}).",
                                 allTopUserResults[i].Filename,
                                 allTopUserResults[i].Html_Url,
                                 allTopUserResults[i].Repo,
                                 allTopUserResults[i].Sha.Substring(0, 5)));
                         }
                         else
-                            sb.Append(String.Format(", <{1}|*{2}/{0}*> ({3}),",
+                            sb.Append(String.Format(", <{1}|*{2}/{0}*> ({3})",
                                 allTopUserResults[i].Filename,
                                 allTopUserResults[i].Html_Url,
                                 allTopUserResults[i].Repo,
