@@ -100,8 +100,9 @@ namespace Website.Commands
         private static string GenerateResults(List<CodeDoc> results)
         {
             StringBuilder sb = new StringBuilder();
+            int users_seen = 0;
 
-            while (results.Any())
+            while (results.Any() && users_seen <= 5)
             {
                 var topUser = results[0].Committer_Name;
 
@@ -111,9 +112,9 @@ namespace Website.Commands
                     results[0].Filename,
                     results[0].Html_Url,
                     results[0].Repo,
-                    results[0].Sha.Substring(0, 5)));
+                    results[0].Sha.Substring(0, 7)));
 
-                var allTopUserResults = results.Where(x => x.Committer_Name == topUser).ToList();
+                var allTopUserResults = results.Where(x => x.Committer_Name == topUser).Take(5).ToList();
 
                 if (results.Count > 1)
                 {
@@ -122,23 +123,26 @@ namespace Website.Commands
                         // last result
                         if (i == allTopUserResults.Count - 1)
                         {
-                            sb.Append(String.Format(", and <{1}|*{2}/{0}*> ({3}).",
+                            if (allTopUserResults.Count > 2) sb.Append(",");
+                            sb.Append(String.Format(" and <{1}|*{2}/{0}*> ({3})",
                                 allTopUserResults[i].Filename,
                                 allTopUserResults[i].Html_Url,
                                 allTopUserResults[i].Repo,
-                                allTopUserResults[i].Sha.Substring(0, 5)));
+                                allTopUserResults[i].Sha.Substring(0, 7)));
                         }
                         else
                             sb.Append(String.Format(", <{1}|*{2}/{0}*> ({3})",
                                 allTopUserResults[i].Filename,
                                 allTopUserResults[i].Html_Url,
                                 allTopUserResults[i].Repo,
-                                allTopUserResults[i].Sha.Substring(0, 5)));
+                                allTopUserResults[i].Sha.Substring(0, 7)));
                     }
                 }
 
+                sb.Append(".");
                 results.RemoveAll(x => x.Committer_Name == topUser);
                 sb.AppendLine("");
+                users_seen++;
             }
 
             return sb.ToString();
