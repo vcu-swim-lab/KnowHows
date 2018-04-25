@@ -111,7 +111,7 @@ namespace Website.Managers
                 {
                     var commits_processed = 0;
                     var commits = user.GitHubClient.Repository.Commit.GetAll(repo.Owner.Login, repo.Name).Result;
-
+                    
                     foreach (var commit in commits)
                     {
                         if (commits_processed > COMMITS_THRESHOLD) {
@@ -251,7 +251,7 @@ namespace Website.Managers
             // return top n results 
             opts.Rows = RESULTS;
 
-            var query = new LocalParams { { "type", "boost" }, { "b", "recip(ms(NOW,author_date),3.16e-11,-1,1)" } } + (new SolrQuery("patch:"+  search) || new SolrQuery("commit_message:" + search));
+            var query = new LocalParams { { "type", "boost" }, { "b", "recip(ms(NOW,author_date),3.16e-11,-1,1)" } } + (new SolrQuery("patch:\""+  search+ "\"") || new SolrQuery("commit_message:\"" + search + "\""));
             var codeQuery = solr.Query(query, opts);
 
             List<CodeDoc> results = new List<CodeDoc>();
