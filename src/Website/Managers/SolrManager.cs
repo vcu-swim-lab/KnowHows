@@ -11,13 +11,13 @@ using System.Text.RegularExpressions;
 using Processor;
 using System.Net;
 using Octokit;
+using LibGit2Sharp;
 
 namespace Website.Managers
 {
     public class SolrManager
     {
         private const int RESULTS = 10;
-        private const int COMMITS_THRESHOLD = 50;
 
         ISolrConnection connection = new SolrNet.Impl.SolrConnection(SolrUrl.SOLR_URL)
         {
@@ -34,187 +34,18 @@ namespace Website.Managers
             this.lastFetchTimes = new Dictionary<String, DateTime>();
         }
 
-        public List<CodeDoc> PerformNLPQuery(String query, String channelId)
-        {
-            return NaturalLangQuery(query, channelId);
-        }
-
-        public List<CodeDoc> PerformQuery(String query, String channelId)
-        {
-            return BasicQuery(query, channelId);
-        }
-
-        private List<CodeDoc> GetDocumentsFromCommit(GitHubUser user, Repository repo, GitHubCommit commit)
-        {
-            List<CodeDoc> cd = new List<CodeDoc>();
-            var associated_files = user.GitHubClient.Repository.Commit.Get(repo.Id, commit.Sha).Result.Files;
-
-            foreach (var file in associated_files)
-            {
-                string ext = Path.GetExtension(file.Filename);
-
-                if (String.IsNullOrEmpty(ext) || !SrcML.supportedExtensions.ContainsKey(ext))
-                {
-                    Console.WriteLine("Skipping {0} ({1}): not supported by SrcML", file.Filename, file.Sha);
-                    continue;
-                }
-
-                if (file.Additions == 0 || String.Equals(file.Status, "removed"))
-                {
-                    Console.WriteLine("Skipping {0} ({1}): file was deleted", file.Filename, file.Sha);
-                    continue;
-                }
-
-                // pulls out relevant information for later searching
-                string parsedPatch = FullyParsePatch(file.Filename, file.RawUrl, file.Patch);
-
-                if (String.IsNullOrEmpty(parsedPatch))
-                {
-                    Console.WriteLine("Discarding {0} ({1}): no relevant terms found in parsed patch", file.Filename, file.Sha);
-                    continue;
-                }
-
-                CodeDoc doc = new CodeDoc
-                {
-                    Id = file.Sha,
-                    Sha = file.Sha,
-                    Author_Date = commit.Commit.Author.Date.Date,
-                    Author_Name = commit.Commit.Author.Name,
-                    Channel = user.ChannelID,
-                    Committer_Name = user.UserID,
-                    Accesstoken = user.GitHubAccessToken,
-                    Filename = file.Filename,
-                    Previous_File_Name = file.PreviousFileName,
-                    Raw_Url = file.RawUrl,
-                    Blob_Url = file.BlobUrl,
-                    Unindexed_Patch = parsedPatch,
-                    Patch = parsedPatch,
-                    Repo = repo.Name,
-                    Html_Url = commit.HtmlUrl,
-                    Message = commit.Commit.Message,
-                    Prog_Language = SrcML.supportedExtensions[ext]
-                };
-
-                cd.Add(doc);
-                Console.WriteLine("Adding {0}/{1} ({2}) to Solr", doc.Repo, doc.Filename, doc.Sha);
-            }
-
-            return cd;
-        }
-
-        public void TrackRepository(GitHubUser user, List<Repository> repositories)
+        /// <summary>
+        /// Return the top <see cref="RESULTS" /> results for a given basic query in a channel.
+        /// </summary>
+        public List<CodeDoc> BasicQuery(string search, string channelId)
         {
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
 
-            try {
-                foreach (var repo in repositories)
-                {
-                    var commits_processed = 0;
-                    var commits = user.GitHubClient.Repository.Commit.GetAll(repo.Owner.Login, repo.Name).Result;
-                    
-                    foreach (var commit in commits)
-                    {
-                        if (commits_processed > COMMITS_THRESHOLD) {
-                            Console.WriteLine(String.Format("Commits threshold reached on {0} for {1}. Stopping...", repo.Name, user.UUID));
-                            break;
-                        }
-
-                        if (commit.Author != null && commit.Author.Login != user.GitHubClient.User.Current().Result.Login) continue;
-                        var docsToAdd = GetDocumentsFromCommit(user, repo, commit);
-
-                        foreach (var doc in docsToAdd) solr.Add(doc);
-
-                        commits_processed++;
-                    }
-
-                    solr.Commit();
-                    Console.WriteLine(String.Format("Finished tracking {0} for {1} to Solr", repo.Name , user.UUID));
-                }
-            }
-            catch (RateLimitExceededException) {
-                Console.WriteLine(String.Format("Rate limit exceeded for {0}. Stopping...", user.UUID));
-            }
-            catch (AbuseException) {
-                Console.WriteLine(String.Format("Abuse detection triggered for {0}. Stopping...", user.UUID));
-            }
-            catch (Exception ex) {
-                Console.WriteLine(String.Format("Error trying to retrieve commits for {0}. Stopping...", user.UUID));
-                Console.WriteLine(ex.ToString());
-            }
-            finally {
-                solr.Commit();
-            }
-        }
-
-        private string FullyParsePatch(string fileName, string rawUrl, string patch)
-        {
-            DiffParser parser = new DiffParser();
-            string rawFile = GetFullRawFile(rawUrl);
-            var terms = parser.FindTerms(fileName, rawFile, patch);
-
-            return string.Join(' ', terms);
-        }
-
-        private string GetFullRawFile(string rawUrl)
-        {
-            string fullFile = "";
-            try
-            {
-                using (WebClient cl = new WebClient())
-                {
-                    fullFile = cl.DownloadString(rawUrl);
-                }
-            }
-            catch (WebException ex)
-            {
-                Console.WriteLine("Failed to download a full file: " + ex);
-            }
-            return fullFile;
-        }
-
-        /// <summary>
-        /// removes a given user's repo from a channel
-        /// </summary>
-        /// <param name="user"></param>
-        /// <param name="channel"></param>
-        /// <param name="repository"></param>
-        public void UntrackRepository(GitHubUser user, List<String> repository)
-        {
-            try
-            {
-                ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
-
-                if(repository.Count > 1)
-                    solr.Delete(new SolrQuery("channel:" + user.ChannelID) && new SolrQuery("repo:" + repository[0]) && new SolrQuery("committer_name:" + user.UserID));
-               else
-                    solr.Delete(new SolrQuery("channel:" + user.ChannelID) && new SolrQuery("committer_name:" + user.UserID));
-                solr.Commit();
-            }
-            catch(Exception ex) { Console.WriteLine(ex.ToString()); }
-        }
-
-        /// <summary>
-        /// Queries Solr and looks for exact matches 
-        /// </summary>
-        /// <param name="search"></param>
-        /// <param name="channelId"></param>
-        /// <returns></returns>
-        private List<CodeDoc> BasicQuery(string search, string channelId)
-        {
-            ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
-
-            List<ISolrQuery> filter = new List<ISolrQuery>();
             var opts = new QueryOptions();
-
             var lang = GetLanguageRequest(search);
-
             if (!string.IsNullOrEmpty(lang))
-                filter.Add(new SolrQueryByField("prog_language", lang));
-
-            filter.Add(new SolrQueryByField("channel", channelId));
-            foreach (var filt in filter) opts.AddFilterQueries(filt);
-
-            // return top n results
+                opts.AddFilterQueries(new SolrQueryByField("prog_language", lang));
+            opts.AddFilterQueries(new SolrQueryByField("channel", channelId));
             opts.Rows = RESULTS;
 
             var query = new LocalParams { { "type", "boost" }, { "b", "recip(ms(NOW,author_date),3.16e-11,-1,1)" } } + new SolrQuery("unindexed_patch:\"" + search + "\"");
@@ -227,28 +58,17 @@ namespace Website.Managers
         }
 
         /// <summary>
-        /// Provide a search string and filter string this will return the top n results.  
+        /// Return the top <see cref="RESULTS" /> results for a given natural language query in a channel.
         /// </summary>
-        /// <param name="search">the search term</param>
-        /// <param name="channelId">the channel to filter by</param>
         public List<CodeDoc> NaturalLangQuery(string search, string channelId)
         {
-            // there is some duplication, should be cleaned up 
             ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
 
-            List<ISolrQuery> filter = new List<ISolrQuery>();
             var opts = new QueryOptions();
-
             var lang = GetLanguageRequest(search);
-
             if (!string.IsNullOrEmpty(lang))
-                filter.Add(new SolrQueryByField("prog_language", lang));
-
-
-            filter.Add(new SolrQueryByField("channel", channelId));
-            foreach (var filt in filter) opts.AddFilterQueries(filt);
-            
-            // return top n results 
+                opts.AddFilterQueries(new SolrQueryByField("prog_language", lang));
+            opts.AddFilterQueries(new SolrQueryByField("channel", channelId));
             opts.Rows = RESULTS;
 
             var query = new LocalParams { { "type", "boost" }, { "b", "recip(ms(NOW,author_date),3.16e-11,-1,1)" } } + (new SolrQuery("patch:\""+  search+ "\"") || new SolrQuery("commit_message:\"" + search + "\""));
@@ -260,14 +80,129 @@ namespace Website.Managers
             return results;
         }
 
+        /// <summary>
+        /// Determine the language modifier in a query.
+        /// </summary>
         private string GetLanguageRequest(string search)
         {
-            // capture the in "language", in group 2 
-            search += " ";
-            var inLanguage = Regex.Match(search, " (in) (.+) ").Groups;
-            var lang = inLanguage[2].ToString();
+            // Capture /knowhows <...> in <language>
+            var language_match = Regex.Match(search, " in (.+)").Groups;
+            var lang = language_match[1].ToString();
 
             return lang;
+        }
+
+        /// <summary>
+        /// Tracks a provided repository for a channel and adds its documents to Solr.
+        /// </summary>
+        public void TrackRepository(GitHubUser user, List<Octokit.Repository> repositories)
+        {
+            ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
+
+            try
+            {
+                var clone_options = new CloneOptions();
+                clone_options.CredentialsProvider = (_url, _user, _cred) => new UsernamePasswordCredentials { Username = user.GitHubAccessToken, Password = String.Empty};
+
+                foreach (var repo in repositories)
+                {
+                    string repo_path = GetTemporaryDirectory();
+                    string git_url = repo.CloneUrl;
+                    LibGit2Sharp.Repository.Clone(git_url, repo_path, clone_options);
+
+                    List<CodeDoc> commit_files = ParseRepository(user, repo_path);
+                    solr.AddRange(commit_files);
+                    solr.Commit();
+                    Directory.Delete(repo_path, true);
+                    Console.WriteLine(String.Format("Finished tracking {0} for {1} to Solr", repo.Name , user.UUID));
+                }
+            }
+            catch (RateLimitExceededException) {
+                Console.WriteLine(String.Format("Rate limit exceeded for {0}. Stopping...", user.UUID));
+            }
+            catch (AbuseException) {
+                Console.WriteLine(String.Format("Abuse detection triggered for {0}. Stopping...", user.UUID));
+            }
+            catch (Exception ex) {
+                Console.WriteLine(String.Format("Error trying to track repository for {0}. Stopping...", user.UUID));
+                Console.WriteLine(ex.ToString());
+            }
+            finally {
+                solr.Commit();
+            }
+        }
+
+        /// <summary>
+        /// Untracks the provided repository from a channel and deletes its documents from Solr.
+        /// </summary>
+        public void UntrackRepository(GitHubUser user, List<String> repositories)
+        {
+            try
+            {
+                ISolrOperations<CodeDoc> solr = ServiceLocator.Current.GetInstance<ISolrOperations<CodeDoc>>();
+                foreach (string repo in repositories)
+                {
+                    solr.Delete(new SolrQuery("channel:" + user.ChannelID) && new SolrQuery("repo:" + repo) && new SolrQuery("committer_name:" + user.UserID));
+                }
+                solr.Commit();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(String.Format("Error attemtping to untrack repositories for user {0}", user.UUID));
+                Console.WriteLine(ex.ToString());
+            }
+        }
+
+        /// <summary>
+        /// Call GitParser on a local repository for parsing.
+        /// The commit tree is walked until no new commits remain.
+        /// </summary>
+        private List<CodeDoc> ParseRepository(GitHubUser user, string repo_path)
+        {
+            List<CodeDoc> parsed_files = new List<CodeDoc>();
+            GitParser git_parser = new GitParser(repo_path);
+
+            do
+            {
+                var current_commit = git_parser.ParseCurrentCommit();
+                foreach (CommitFile file in current_commit)
+                {
+                    parsed_files.Add(
+                        new CodeDoc
+                        {
+                            Id = file.Commit_Sha,
+                            Sha = file.Commit_Sha,
+                            Author_Date = file.Authored_Date,
+                            Author_Name = file.Author_Name,
+                            Channel = user.ChannelID,
+                            Committer_Name = user.UserID,
+                            Accesstoken = user.GitHubAccessToken,
+                            Filename = file.Filename,
+                            Previous_File_Name = file.Previous_Filename,
+                            Raw_Url = file.Raw_Url,
+                            Blob_Url = file.Blob_Url,
+                            Unindexed_Patch = file.Parsed_Patch,
+                            Patch = file.Parsed_Patch,
+                            Repo = file.Repository,
+                            Html_Url = file.Commit_Url,
+                            Message = file.Commit_Message,
+                            Prog_Language = file.Language
+                        }
+                    );
+                }
+            } while (git_parser.Walk());
+
+            return parsed_files;
+        }
+
+        /// <summary>
+        /// Generate a path to a temporary directory.
+        /// </summary>
+        private string GetTemporaryDirectory()
+        {
+            string temp_folder = Path.GetTempFileName();
+            Directory.CreateDirectory(temp_folder);
+            return temp_folder;
         }
     }
 }

@@ -50,7 +50,7 @@ namespace Website.Commands
                 string query = ObtainQuery(command.text);
                 if (String.IsNullOrEmpty(query)) return new CommandResponse("*No results found*: empty query was provided");
 
-                var results = SolrManager.Instance.PerformNLPQuery(query, user.ChannelID);
+                var results = SolrManager.Instance.NaturalLangQuery(query, user.ChannelID);
                 StringBuilder sb = new StringBuilder();
 
                 if (results.Count == 0) sb.AppendLine("*No results found*");
@@ -77,7 +77,7 @@ namespace Website.Commands
                 string query = ObtainQuery(command.text);
                 if (String.IsNullOrEmpty(query)) return new CommandResponse("*No results found*: empty query was provided");
 
-                var results = SolrManager.Instance.PerformQuery(query, user.ChannelID);
+                var results = SolrManager.Instance.BasicQuery(query, user.ChannelID);
                 StringBuilder sb = new StringBuilder();
 
                 if (results.Count == 0) sb.AppendLine("*No results found*");

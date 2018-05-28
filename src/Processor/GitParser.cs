@@ -21,7 +21,7 @@ namespace Processor
         private Commit head, child;
         private string repo_owner, repo_name;
 
-        public GitParser(String repo_path) {
+        public GitParser(string repo_path) {
             repository = new Repository(@repo_path);
             head = repository.Head.Tip;
             child = GetNextChildCommit(head);
@@ -42,7 +42,6 @@ namespace Processor
         /// Parse the commit pointed to from the current HEAD.
         /// Use Walk() to move the HEAD pointer down the commit tree and retrieve successive commits.
         /// Returns a list of CommitFile objects that can be inserted in Solr.
-        /// TODO: Determine what to do with initial commits.
         /// </summary>
         public List<CommitFile> ParseCurrentCommit()
         {
@@ -92,9 +91,10 @@ namespace Processor
                     {
                         Commit_Sha = commit_sha,
                         Filename = filename,
+                        Language = SrcML.supportedExtensions[ext],
                         Previous_Filename = previous_filename,
                         Author_Name = author_name,
-                        Authored_Date = authored_date,
+                        Authored_Date = DateTime.Parse(authored_date),
                         Repository = repository_name,
                         Raw_Url = raw_url,
                         Blob_Url = blob_url,
