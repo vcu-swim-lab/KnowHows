@@ -200,7 +200,7 @@ namespace Website.Managers
         /// </summary>
         private string GetTemporaryDirectory()
         {
-            string temp_folder = Path.GetTempFileName();
+            string temp_folder = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             Directory.CreateDirectory(temp_folder);
             return temp_folder;
         }
