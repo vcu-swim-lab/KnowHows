@@ -47,7 +47,15 @@ namespace Processor
         {
             List<CommitFile> commit_files = new List<CommitFile>();
 
-            Patch patch = child != null ? repository.Diff.Compare<Patch>(child.Tree, head.Tree): null;
+            Patch patch;
+            if (child != null)
+            {
+                patch = repository.Diff.Compare<Patch>(child.Tree, head.Tree);
+            }
+            else {
+                return commit_files;
+            }
+
             var commit_sha = head.Sha;
             string author_name = head.Author.Name;
             string authored_date = head.Author.When.Date.ToString(); // The local commit time, so it'll differ from the GitHub commit date
@@ -130,6 +138,7 @@ namespace Processor
         /// If there is no child commit, return null.
         /// </summary>
         private Commit GetNextChildCommit(Commit commit_pointer) {
+            if (commit_pointer == null) return null;
             var filter = new CommitFilter { IncludeReachableFrom = commit_pointer };
             var commit_log = repository.Commits.QueryBy(filter).Skip(1);
             return commit_log.Any() ? commit_log.First() : null;
