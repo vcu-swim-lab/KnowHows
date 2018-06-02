@@ -42,7 +42,12 @@ From a Slack channel with KnowHows installed, the app can be invoked with the sl
 - `/knowhows help` - Prints a brief description of each of these commands.
 
 ## Credits
-KnowHows was developed [Robbie Uvanni](https://github.com/seefo), [Ben Leach](https://github.com/broem), and [Alex Aplin](https://github.com/AlexAplin) under the guidance of [Kostadin Damevski](https://egr.vcu.edu/directory/kostadindamevski/) for the [VCU Capstone Design Expo 2018](https://egr.vcu.edu/capstone/).
+[Alex Aplin](https://github.com/AlexAplin) - Project Lead
+
+[Robbie Uvanni](https://github.com/seefo) - Core
+[Ben Leach](https://github.com/broem) - Core
+
+[Kostadin Damevski](https://egr.vcu.edu/directory/kostadindamevski/) - Project Advisor
 
 ## License
 [MIT](./LICENSE)
